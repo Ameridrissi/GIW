@@ -9,17 +9,40 @@ import { CreditCard, Users, Repeat, Wallet, Link2, ArrowDownToLine, ArrowUpFromL
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Wallet as WalletType, Transaction, PaymentCard as CardType } from "@shared/schema";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 export default function WalletPage() {
   const [showCreateWallet, setShowCreateWallet] = useState(false);
   const [showLinkWallet, setShowLinkWallet] = useState(false);
+  const { toast } = useToast();
 
   const { data: wallets, isLoading: walletsLoading, isError: walletsError } = useQuery<WalletType[]>({
     queryKey: ["/api/wallets"],
+  });
+
+  const syncBalanceMutation = useMutation({
+    mutationFn: async (walletId: string) => {
+      return await apiRequest("POST", `/api/wallets/${walletId}/sync-balance`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
+      toast({
+        title: "Balance Synced",
+        description: "Your wallet balance has been updated from the blockchain",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Sync Failed",
+        description: "Failed to sync balance from blockchain. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const { data: cards, isLoading: cardsLoading, isError: cardsError } = useQuery<CardType[]>({
@@ -208,6 +231,8 @@ export default function WalletPage() {
             usdValue={formattedBalance}
             percentChange="+0.0%"
             isPositive={true}
+            onRefresh={primaryWallet ? () => syncBalanceMutation.mutate(primaryWallet.id) : undefined}
+            isRefreshing={syncBalanceMutation.isPending}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

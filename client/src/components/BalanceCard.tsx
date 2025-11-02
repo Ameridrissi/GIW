@@ -8,9 +8,11 @@ interface BalanceCardProps {
   usdValue: string;
   percentChange: string;
   isPositive: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export function BalanceCard({ balance, usdValue, percentChange, isPositive }: BalanceCardProps) {
+export function BalanceCard({ balance, usdValue, percentChange, isPositive, onRefresh, isRefreshing }: BalanceCardProps) {
   return (
     <Card className="p-8">
       <div className="space-y-6">
@@ -43,8 +45,14 @@ export function BalanceCard({ balance, usdValue, percentChange, isPositive }: Ba
             <ArrowDownLeft className="h-5 w-5 mr-2" />
             Receive
           </Button>
-          <Button variant="outline" size="icon" data-testid="button-refresh">
-            <RefreshCw className="h-5 w-5" />
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={onRefresh}
+            disabled={!onRefresh || isRefreshing}
+            data-testid="button-refresh"
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
