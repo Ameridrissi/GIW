@@ -9,10 +9,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@circle-fin/w3s-pw-web-sdk@1.1.11/dist/index.umd.js"></script>
   </head>
   <body>
     <div id="root"></div>
+    <script type="module">
+      import { Buffer } from 'buffer';
+      import process from 'process';
+      import * as stream from 'stream-browserify';
+      
+      window.global = window;
+      window.Buffer = Buffer;
+      window.process = process;
+      window.stream = stream;
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

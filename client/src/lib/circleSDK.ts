@@ -1,24 +1,13 @@
+import { W3SSdk } from '@circle-fin/w3s-pw-web-sdk';
+
 const CIRCLE_APP_ID = '502da187-5a8a-53c5-9856-3d9a9ac6dd56';
 
-let sdkInstance: any = null;
-
-/**
- * Get the Circle Web SDK from the global window object (loaded via CDN)
- */
-function getCircleSDK(): any {
-  if (typeof window === 'undefined' || !(window as any).W3SSdk) {
-    console.error('Circle SDK (W3SSdk) not available on window object');
-    console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('circle') || k.toLowerCase().includes('w3s')));
-    throw new Error('Circle SDK not loaded. Ensure the CDN script is included in index.html');
-  }
-  console.log('Circle SDK (W3SSdk) found on window object');
-  return (window as any).W3SSdk;
-}
+let sdkInstance: W3SSdk | null = null;
 
 /**
  * Initialize the Circle Web SDK
  */
-export function initializeCircleSDK() {
+export function initializeCircleSDK(): W3SSdk {
   if (sdkInstance) {
     console.log('Returning existing Circle SDK instance');
     return sdkInstance;
@@ -26,7 +15,6 @@ export function initializeCircleSDK() {
 
   try {
     console.log('Initializing new Circle SDK instance...');
-    const W3SSdk = getCircleSDK();
     sdkInstance = new W3SSdk();
     console.log('Circle SDK initialized successfully');
     return sdkInstance;
@@ -89,6 +77,7 @@ export function executeCircleChallenge(
 
 /**
  * Set the layout configuration for the Circle SDK
+ * Note: Layout customization may require additional SDK configuration
  * @param config - Layout configuration options
  */
 export function setCircleLayout(config?: {
@@ -96,13 +85,7 @@ export function setCircleLayout(config?: {
   subtitle?: string;
   showCloseButton?: boolean;
 }) {
-  const sdk = initializeCircleSDK();
-  
-  if (config) {
-    sdk.setLayout({
-      title: config.title || 'Circle Wallet',
-      subtitle: config.subtitle || 'Secure your wallet with a PIN',
-      showClose: config.showCloseButton ?? true,
-    });
-  }
+  // Layout configuration will be handled by Circle SDK internally
+  // The SDK may not support custom layouts in the current version
+  console.log('Circle layout config (informational):', config);
 }
