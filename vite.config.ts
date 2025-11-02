@@ -6,7 +6,13 @@ import { nodePolyfills } from "vite-plugin-node-polyfills"; // ADD THIS LINE
 
 export default defineConfig({
   plugins: [
-    nodePolyfills(), // ADD THIS LINE (must be first in plugins array)
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+    }),
     react(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
