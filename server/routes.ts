@@ -53,16 +53,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create wallet with Circle (returns challenge data for PIN setup)
       const challengeData = await circleService.createUserPinWithWallets(circleUserToken);
+      console.log('[Wallet Creation] Challenge data received:', { hasChallenge: !!challengeData.challengeId });
       
-      // For now, generate a temporary address (will be replaced after PIN setup)
-      const tempAddress = `0x${Array.from({ length: 40 }, () => 
+      // Fetch Circle wallets to get the actual wallet ID and address
+      const circleWallets = await circleService.getUserWallets(circleUserToken);
+      console.log('[Wallet Creation] Circle wallets fetched:', { count: circleWallets.length, wallets: circleWallets });
+      
+      const latestWallet = circleWallets.sort((a: any, b: any) => {
+        const timeA = a.createDate || a.createdDate || 0;
+        const timeB = b.createDate || b.createdDate || 0;
+        return timeB - timeA;
+      })[0];
+      console.log('[Wallet Creation] Latest wallet:', latestWallet);
+      
+      // Use Circle wallet data if available, otherwise use temporary data
+      const walletAddress = latestWallet?.address || `0x${Array.from({ length: 40 }, () => 
         Math.floor(Math.random() * 16).toString(16)
       ).join('')}`;
+      const circleWalletId = latestWallet?.id || null;
+      console.log('[Wallet Creation] Using:', { address: walletAddress, circleWalletId });
       
-      // Store wallet in database with pending PIN setup
+      // Store wallet in database with Circle data
       const wallet = await storage.createWallet({ 
         ...validated, 
-        address: tempAddress,
+        address: walletAddress,
+        circleWalletId: circleWalletId,
         requiresPinSetup: true,  // Mark as requiring PIN setup
         blockchain: "ARC-TESTNET",
         accountType: "SCA",
