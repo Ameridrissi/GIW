@@ -21,7 +21,7 @@ export interface CircleWallet {
 
 export class CircleService {
   /**
-   * Create a new Circle user
+   * Create a new Circle user or get token for existing user
    * @param userId - Unique user identifier (from your auth system)
    * @returns User token for subsequent operations
    */
@@ -32,7 +32,21 @@ export class CircleService {
       });
       
       return response.data?.userToken || '';
-    } catch (error) {
+    } catch (error: any) {
+      // If user already exists (409), get a new token for them
+      if (error.response?.status === 409) {
+        console.log(`Circle user already exists for userId: ${userId}, fetching token...`);
+        try {
+          const tokenResponse: any = await circleClient.createUserToken({
+            userId: userId,
+          });
+          return tokenResponse.data?.userToken || '';
+        } catch (tokenError) {
+          console.error('Error creating user token:', tokenError);
+          throw new Error('Failed to get user token');
+        }
+      }
+      
       console.error('Error creating Circle user:', error);
       throw new Error('Failed to create Circle user');
     }

@@ -55,7 +55,7 @@ export function executeCircleChallenge(
         encryptionKey: encryptionKey,
       });
 
-      sdk.execute(challengeId, (error, result) => {
+      sdk.execute(challengeId, (error: any, result: any) => {
         if (error) {
           console.error('Circle SDK error:', error);
           reject(error);
