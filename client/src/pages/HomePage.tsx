@@ -98,6 +98,31 @@ export default function HomePage() {
         </div>
       </div>
 
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-4 overflow-hidden relative">
+        <div className="flex animate-slide-banner whitespace-nowrap">
+          <div className="flex items-center gap-12 px-6">
+            <span className="text-white font-semibold text-lg">💳 Wallet Payments</span>
+            <span className="text-white font-semibold text-lg">🤖 AI Insights</span>
+            <span className="text-white font-semibold text-lg">🌍 Global Transfers</span>
+            <span className="text-white font-semibold text-lg">🔒 Secure Transactions</span>
+            <span className="text-white font-semibold text-lg">⚡ Instant Deposits</span>
+            <span className="text-white font-semibold text-lg">📊 Smart Analytics</span>
+            <span className="text-white font-semibold text-lg">💰 Zero Fees</span>
+            <span className="text-white font-semibold text-lg">🚀 Fast Processing</span>
+          </div>
+          <div className="flex items-center gap-12 px-6">
+            <span className="text-white font-semibold text-lg">💳 Wallet Payments</span>
+            <span className="text-white font-semibold text-lg">🤖 AI Insights</span>
+            <span className="text-white font-semibold text-lg">🌍 Global Transfers</span>
+            <span className="text-white font-semibold text-lg">🔒 Secure Transactions</span>
+            <span className="text-white font-semibold text-lg">⚡ Instant Deposits</span>
+            <span className="text-white font-semibold text-lg">📊 Smart Analytics</span>
+            <span className="text-white font-semibold text-lg">💰 Zero Fees</span>
+            <span className="text-white font-semibold text-lg">🚀 Fast Processing</span>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-[1400px] mx-auto px-8 py-16">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold font-display mb-4">Why Choose GIW?</h2>
