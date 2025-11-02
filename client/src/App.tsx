@@ -44,30 +44,44 @@ function App() {
           <div className="flex h-screen w-full">
             <AppSidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
-              <header className="flex items-center justify-between gap-4 p-4 border-b bg-background">
-                <SidebarTrigger data-testid="button-sidebar-toggle" />
-                
-                <div className="flex items-center gap-4 flex-1 justify-center">
-                  <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-card border">
-                    <Wallet className="h-5 w-5 text-primary" />
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground">Total Balance</span>
-                      <span className="font-semibold" data-testid="text-header-balance">2,450.00 USDC</span>
-                    </div>
+              <header className="border-b bg-background">
+                {/* Animated Banner */}
+                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+                  <div className="animate-slide-banner whitespace-nowrap py-2 px-4">
+                    <span className="inline-block text-white text-sm font-medium">
+                      🎉 Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
+                    </span>
+                    <span className="inline-block text-white text-sm font-medium">
+                      🎉 Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
+                    </span>
                   </div>
-                  
-                  <Button size="sm" variant="default" data-testid="button-quick-send">
-                    <Send className="h-4 w-4 mr-2" />
-                    Send
-                  </Button>
-                  
-                  <Button size="sm" variant="outline" data-testid="button-quick-receive">
-                    <ArrowDownToLine className="h-4 w-4 mr-2" />
-                    Receive
-                  </Button>
                 </div>
 
-                <ThemeToggle />
+                <div className="flex items-center justify-between gap-4 p-4">
+                  <SidebarTrigger data-testid="button-sidebar-toggle" />
+                  
+                  <div className="flex items-center gap-4 flex-1 justify-center">
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-card border">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">Total Balance</span>
+                        <span className="font-semibold" data-testid="text-header-balance">2,450.00 USDC</span>
+                      </div>
+                    </div>
+                    
+                    <Button size="sm" variant="default" data-testid="button-quick-send">
+                      <Send className="h-4 w-4 mr-2" />
+                      Send
+                    </Button>
+                    
+                    <Button size="sm" variant="outline" data-testid="button-quick-receive">
+                      <ArrowDownToLine className="h-4 w-4 mr-2" />
+                      Receive
+                    </Button>
+                  </div>
+
+                  <ThemeToggle />
+                </div>
               </header>
               <main className="flex-1 overflow-auto p-8">
                 <div className="max-w-7xl mx-auto">
