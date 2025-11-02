@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { NewsCard } from "@/components/NewsCard";
 import { ArrowRight, Wallet, Brain, Zap, Shield } from "lucide-react";
-import heroImage from "@assets/image_1762044194701.png";
+import heroImage from "@assets/generated_images/Hero_blockchain_network_background_010a2c15.png";
 
 export default function HomePage() {
   const features = [
