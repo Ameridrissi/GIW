@@ -1,19 +1,19 @@
 import { W3SSdk } from '@circle-fin/w3s-pw-web-sdk';
 
-let sdk: W3SSdk | null = null;
+const CIRCLE_APP_ID = "502da187-5a8a-53c5-9856-3d9a9ac6dd56";
 
-export function initializeCircleSDK(appId: string): W3SSdk {
-  if (!sdk) {
-    sdk = new W3SSdk();
-    sdk.setAppSettings({ appId });
-    console.log('[Circle SDK] Initialized with App ID:', appId);
-  }
-  return sdk;
+// Initialize SDK at module level (matching working example)
+let sdk: W3SSdk | undefined;
+if (typeof window !== "undefined") {
+  sdk = new W3SSdk({
+    appSettings: { appId: CIRCLE_APP_ID },
+  });
+  console.log('[Circle SDK] Initialized at module level');
 }
 
 export function getCircleSDK(): W3SSdk {
   if (!sdk) {
-    throw new Error('Circle SDK not initialized. Call initializeCircleSDK first.');
+    throw new Error('Circle SDK not initialized');
   }
   return sdk;
 }
@@ -24,35 +24,20 @@ export interface ChallengeResult {
   data?: any;
 }
 
-export function executeChallenge(
-  userToken: string,
-  encryptionKey: string,
-  challengeId: string
-): Promise<ChallengeResult> {
-  return new Promise((resolve, reject) => {
-    const sdk = getCircleSDK();
-    
-    console.log('[Circle SDK] Setting authentication...');
-    sdk.setAuthentication({
-      userToken,
-      encryptionKey,
-    });
-
-    console.log('[Circle SDK] Executing challenge:', challengeId);
-    sdk.execute(challengeId, (error, result) => {
-      if (error) {
-        console.error('[Circle SDK] Challenge error:', error);
-        reject(error);
-        return;
-      }
-
-      if (!result) {
-        reject(new Error('No result from Circle SDK'));
-        return;
-      }
-
-      console.log('[Circle SDK] Challenge completed:', result);
-      resolve(result as ChallengeResult);
-    });
+export function setAuthentication(userToken: string, encryptionKey: string) {
+  const circleSdk = getCircleSDK();
+  circleSdk.setAuthentication({
+    userToken,
+    encryptionKey,
   });
+  console.log('[Circle SDK] Authentication set');
+}
+
+export function executeChallenge(
+  challengeId: string,
+  callback: (error: any, result: any) => void
+): void {
+  const circleSdk = getCircleSDK();
+  console.log('[Circle SDK] Executing challenge:', challengeId);
+  circleSdk.execute(challengeId, callback);
 }

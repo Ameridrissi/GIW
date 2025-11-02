@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import { Wallet, Copy, CheckCircle2, Lock } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { executeChallenge } from "@/lib/circleSDK";
+import { setAuthentication, executeChallenge } from "@/lib/circleSDK";
 import type { Wallet as WalletType } from "@shared/schema";
 
 interface WalletCreationModalProps {
@@ -35,17 +35,26 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       return response.json();
     },
     onSuccess: async (data: any) => {
-      console.log('[PIN Setup] Executing Circle PIN challenge...');
+      console.log('[PIN Setup] Challenge received:', data.challengeId);
       
-      // Execute PIN setup challenge
-      try {
-        const result = await executeChallenge(
-          data.userToken,
-          data.encryptionKey,
-          data.challengeId
-        );
+      // Set authentication (matching working example)
+      setAuthentication(data.userToken, data.encryptionKey);
+      
+      // Execute PIN setup challenge with callback (matching working example)
+      executeChallenge(data.challengeId, (error: any, result: any) => {
+        if (error) {
+          console.error('[PIN Setup] Failed:', error);
+          toast({
+            title: "PIN Setup Failed",
+            description: error.message || "Please try again.",
+            variant: "destructive",
+          });
+          setStep("create");
+          return;
+        }
         
-        if (result.status === 'COMPLETE') {
+        if (result) {
+          console.log('[PIN Setup] Success:', result);
           setIsPinSetup(true);
           toast({
             title: "PIN Set Successfully",
@@ -54,18 +63,8 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
           // Automatically proceed to create wallet
           setStep("create-wallet");
           createWalletMutation.mutate(walletName);
-        } else {
-          throw new Error(`PIN setup failed: ${result.status}`);
         }
-      } catch (error) {
-        console.error('[PIN Setup] Failed:', error);
-        toast({
-          title: "PIN Setup Failed",
-          description: "Please try again.",
-          variant: "destructive",
-        });
-        setStep("create");
-      }
+      });
     },
     onError: () => {
       toast({
@@ -84,17 +83,24 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       return response.json();
     },
     onSuccess: async (data: any) => {
-      console.log('[Wallet Creation] Executing Circle wallet creation challenge...');
+      console.log('[Wallet Creation] Challenge received:', data.challengeId);
       
-      // Execute wallet creation challenge
-      try {
-        const result = await executeChallenge(
-          data.userToken,
-          data.userToken, // encryptionKey not returned for wallet creation
-          data.challengeId
-        );
+      // Authentication is already set from PIN setup
+      // Execute wallet creation challenge with callback (matching working example)
+      executeChallenge(data.challengeId, (error: any, result: any) => {
+        if (error) {
+          console.error('[Wallet Creation] Failed:', error);
+          toast({
+            title: "Wallet Creation Failed",
+            description: error.message || "Please try again.",
+            variant: "destructive",
+          });
+          setStep("create");
+          return;
+        }
         
-        if (result.status === 'COMPLETE') {
+        if (result) {
+          console.log('[Wallet Creation] Success:', result);
           toast({
             title: "Wallet Created",
             description: "Your blockchain wallet has been created successfully!",
@@ -103,18 +109,8 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
           setCreatedWallet(data.wallet);
           setStep("success");
           queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
-        } else {
-          throw new Error(`Wallet creation failed: ${result.status}`);
         }
-      } catch (error) {
-        console.error('[Wallet Creation] Failed:', error);
-        toast({
-          title: "Wallet Creation Failed",
-          description: "Please try again.",
-          variant: "destructive",
-        });
-        setStep("create");
-      }
+      });
     },
     onError: () => {
       toast({
