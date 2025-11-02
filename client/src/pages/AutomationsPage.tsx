@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CreateAutomationModal } from "@/components/CreateAutomationModal";
 
 export default function AutomationsPage() {
   const { toast } = useToast();
@@ -298,6 +299,12 @@ export default function AutomationsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateAutomationModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        initialType={selectedType}
+      />
     </div>
   );
 }
