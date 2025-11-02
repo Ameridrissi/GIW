@@ -5,7 +5,7 @@ import { QuickActionCard } from "@/components/QuickActionCard";
 import { AIInsightAlert } from "@/components/AIInsightAlert";
 import { WalletCreationModal } from "@/components/WalletCreationModal";
 import { LinkWalletModal } from "@/components/LinkWalletModal";
-import { CreditCard, Users, Repeat, Wallet, Link2, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { CreditCard, Users, Repeat, Wallet, Link2, ArrowDownToLine, ArrowUpFromLine, Download } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -60,6 +60,26 @@ export default function WalletPage() {
     },
   });
 
+  const importWalletsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/wallets/import-from-circle");
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
+      toast({
+        title: "Wallets Imported",
+        description: data.message || `Successfully imported ${data.imported} wallet(s) from Circle`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to import wallets from Circle",
+        variant: "destructive",
+      });
+    },
+  });
+
   const { data: cards, isLoading: cardsLoading, isError: cardsError } = useQuery<CardType[]>({
     queryKey: ["/api/cards"],
   });
@@ -75,7 +95,7 @@ export default function WalletPage() {
     return {
       id: tx.id,
       type: tx.type,
-      merchant: tx.recipient || tx.description || "Unknown",
+      merchant: tx.merchant || "Unknown",
       category: tx.category || "other",
       amount: `${tx.amount} USDC`,
       date: format(new Date(tx.createdAt), "MMM d, h:mm a"),
@@ -147,8 +167,17 @@ export default function WalletPage() {
         <Card className="p-8 text-center">
           <Wallet className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-xl font-semibold mb-2">No Wallets Yet</h3>
-          <p className="text-muted-foreground mb-4">Create or link your first wallet to get started</p>
-          <div className="flex gap-3 justify-center">
+          <p className="text-muted-foreground mb-4">Create a new wallet, link an existing one, or import from Circle</p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => importWalletsMutation.mutate()}
+              disabled={importWalletsMutation.isPending}
+              data-testid="button-import-circle"
+            >
+              <Download className="h-5 w-5 mr-2" />
+              {importWalletsMutation.isPending ? "Importing..." : "Import from Circle"}
+            </Button>
             <Button
               variant="outline"
               onClick={() => setShowLinkWallet(true)}
@@ -280,9 +309,9 @@ export default function WalletPage() {
                     {cards.map((card) => (
                       <PaymentCard
                         key={card.id}
-                        type={card.cardType === "Visa" ? "visa" : "mastercard"}
-                        last4={card.lastFour}
-                        expiry={card.expiryDate}
+                        type={card.type}
+                        last4={card.last4}
+                        expiry={card.expiry}
                         isDefault={card.isDefault}
                         cardholderName={card.cardholderName}
                       />

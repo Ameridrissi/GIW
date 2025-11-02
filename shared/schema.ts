@@ -135,10 +135,10 @@ export const upsertUserSchema = createInsertSchema(users).omit({
 export const insertWalletSchema = createInsertSchema(wallets).omit({
   id: true,
   createdAt: true,
-  balance: true,
-  address: true,
 }).extend({
   name: z.string().min(1).max(100),
+  address: z.string().optional(),
+  balance: z.string().optional(),
   isLinked: z.boolean().default(false),
   requiresPinSetup: z.boolean().optional(),
   blockchain: z.string().optional(),

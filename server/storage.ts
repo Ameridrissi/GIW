@@ -16,7 +16,7 @@ import {
   type InsertAutomation,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -28,6 +28,7 @@ export interface IStorage {
   // Wallet operations
   getWallet(id: string): Promise<Wallet | undefined>;
   getUserWallets(userId: string): Promise<Wallet[]>;
+  getWalletByAddress(address: string, userId: string): Promise<Wallet | undefined>;
   createWallet(wallet: InsertWallet): Promise<Wallet>;
   updateWalletBalance(id: string, balance: string): Promise<Wallet | undefined>;
   updateWalletCircleData(id: string, circleWalletId: string, address: string, requiresPinSetup: boolean): Promise<Wallet | undefined>;
@@ -101,6 +102,15 @@ export class DatabaseStorage implements IStorage {
 
   async getUserWallets(userId: string): Promise<Wallet[]> {
     return db.select().from(wallets).where(eq(wallets.userId, userId)).orderBy(desc(wallets.createdAt));
+  }
+
+  async getWalletByAddress(address: string, userId: string): Promise<Wallet | undefined> {
+    const [wallet] = await db.select().from(wallets)
+      .where(and(
+        sql`LOWER(${wallets.address}) = LOWER(${address})`,
+        eq(wallets.userId, userId)
+      ));
+    return wallet || undefined;
   }
 
   async createWallet(insertWallet: InsertWallet): Promise<Wallet> {

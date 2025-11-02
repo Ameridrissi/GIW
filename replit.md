@@ -21,19 +21,23 @@ The application features complete Circle User-Controlled Wallets integration wit
   - All wallet creation functionality works end-to-end
 - ✅ **Updated database schema with Circle-specific fields (walletId, blockchain, requiresPinSetup)**
 - ✅ Built complete REST API for wallets, transactions, cards, and automations with resource ownership security
-- ✅ Integrated OpenAI for AI chat assistant (blueprint ready)
+- ✅ Integrated AI/ML API (https://api.aimlapi.com/v1) for AI chat assistant with GPT-4o model
 - ✅ Connected frontend to all backend APIs
 - ✅ **Created dedicated Dashboard page with wallet overview, stats, and transaction summary**
-- ✅ **Added PIN setup instructions UI with links to Circle documentation**
+- ✅ **Removed PIN setup banners from Dashboard and Wallet pages (per user request)**
 - ✅ End-to-end wallet creation tested successfully with real Circle TEST_API_KEY
 - ✅ **Application fully functional with Circle blockchain wallets**
-- ✅ **Implemented Balance Refresh Feature with Graceful PIN Setup Handling**
+- ✅ **Implemented Balance Refresh Feature with Auto-Sync**
   - Added `POST /api/wallets/:id/sync-balance` endpoint to fetch real balance from Circle API
-  - Backend gracefully handles wallets without `circle_wallet_id` (returns 200 with helpful message)
-  - Frontend refresh button in BalanceCard with spinning icon during sync
-  - Refresh button automatically disabled when wallet requires PIN setup
+  - Auto-fetches Circle wallet ID if missing by matching blockchain address
+  - Frontend refresh button enabled always (no disabled state)
   - Toast notifications provide accurate feedback based on sync status
-  - End-to-end tested and architect-approved
+- ✅ **CRITICAL FIX: Import Wallets from Circle Feature**
+  - Added `POST /api/wallets/import-from-circle` endpoint to sync existing Circle wallets into app
+  - Fetches all Circle wallets and creates database records for any not yet tracked
+  - Updates existing wallet records with Circle wallet IDs if missing
+  - Prominent "Import from Circle" button in UI when no wallets exist
+  - Solves issue where wallets created via Circle Console don't appear in app
 
 ## Architecture
 

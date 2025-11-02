@@ -39,6 +39,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/wallets/import-from-circle", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get a fresh Circle user token
+      const circleUserToken = await circleService.createUser(userId);
+      
+      // Fetch all Circle wallets
+      const circleWallets = await circleService.getUserWallets(circleUserToken);
+      console.log('[Import Wallets] Found Circle wallets:', { count: circleWallets.length });
+      
+      const importedWallets = [];
+      
+      // For each Circle wallet, check if it exists in our database
+      for (const circleWallet of circleWallets) {
+        if (!circleWallet.address || !circleWallet.id) {
+          console.log('[Import Wallets] Skipping wallet without address or ID');
+          continue;
+        }
+        
+        // Check if wallet already exists
+        const existingWallet = await storage.getWalletByAddress(circleWallet.address, userId);
+        
+        if (existingWallet) {
+          // Update existing wallet with Circle data if needed
+          if (!existingWallet.circleWalletId) {
+            console.log('[Import Wallets] Updating existing wallet with Circle ID:', circleWallet.id);
+            await storage.updateWalletCircleData(
+              existingWallet.id,
+              circleWallet.id,
+              circleWallet.address,
+              false
+            );
+          }
+        } else {
+          // Create new wallet
+          console.log('[Import Wallets] Creating new wallet:', { address: circleWallet.address, id: circleWallet.id });
+          const newWallet = await storage.createWallet({
+            userId,
+            name: `Imported Wallet`,
+            balance: "0",
+            address: circleWallet.address,
+            circleWalletId: circleWallet.id,
+            blockchain: circleWallet.blockchain || "ARC-TESTNET",
+            accountType: circleWallet.accountType || "SCA",
+            requiresPinSetup: false,
+            isLinked: true,
+          });
+          importedWallets.push(newWallet);
+        }
+      }
+      
+      console.log('[Import Wallets] Import complete:', { imported: importedWallets.length });
+      
+      res.json({ 
+        message: `Imported ${importedWallets.length} wallet(s) from Circle`,
+        imported: importedWallets.length,
+        total: circleWallets.length,
+        wallets: importedWallets
+      });
+    } catch (error: any) {
+      console.error("Error importing wallets from Circle:", error);
+      res.status(500).json({ message: error.message || "Failed to import wallets from Circle" });
+    }
+  });
+
   app.post("/api/wallets", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
