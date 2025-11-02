@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet, Copy, CheckCircle2, Lock } from "lucide-react";
+import { Wallet, Copy, CheckCircle2, Lock, AlertCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -188,16 +188,16 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={handleClose} className="flex-1" disabled={createMutation.isPending}>
+              <Button variant="outline" onClick={handleClose} className="flex-1" disabled={setupPinMutation.isPending}>
                 Cancel
               </Button>
               <Button 
                 onClick={handleCreate} 
                 className="flex-1" 
                 data-testid="button-create-wallet"
-                disabled={createMutation.isPending}
+                disabled={setupPinMutation.isPending}
               >
-                {createMutation.isPending ? "Creating..." : "Create Wallet"}
+                {setupPinMutation.isPending ? "Creating..." : "Create Wallet"}
               </Button>
             </div>
           </>
