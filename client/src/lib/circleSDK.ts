@@ -1,9 +1,16 @@
-import { W3SSdk } from '@circle-fin/w3s-pw-web-sdk';
-
 const CIRCLE_APP_ID = '502da187-5a8a-53c5-9856-3d9a9ac6dd56';
-const CIRCLE_ENDPOINT = 'https://api.circle.com/v1/w3s/';
 
-let sdkInstance: W3SSdk | null = null;
+let sdkInstance: any = null;
+
+/**
+ * Get the Circle Web SDK from the global window object (loaded via CDN)
+ */
+function getCircleSDK(): any {
+  if (typeof window === 'undefined' || !(window as any).W3SSdk) {
+    throw new Error('Circle SDK not loaded. Ensure the CDN script is included in index.html');
+  }
+  return (window as any).W3SSdk;
+}
 
 /**
  * Initialize the Circle Web SDK
@@ -14,6 +21,7 @@ export function initializeCircleSDK() {
   }
 
   try {
+    const W3SSdk = getCircleSDK();
     sdkInstance = new W3SSdk();
     return sdkInstance;
   } catch (error) {
