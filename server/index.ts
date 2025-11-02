@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { automationService } from "./automationService";
 
 const app = express();
 
@@ -78,4 +79,24 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
+
+  // Start automation scheduler (runs every minute)
+  log("[Automation] Starting automation scheduler...");
+  setInterval(async () => {
+    try {
+      await automationService.processDueAutomations();
+    } catch (error) {
+      console.error("[Automation] Scheduler error:", error);
+    }
+  }, 60000); // Run every 60 seconds
+
+  // Run immediately on startup
+  setTimeout(async () => {
+    try {
+      log("[Automation] Running initial automation check...");
+      await automationService.processDueAutomations();
+    } catch (error) {
+      console.error("[Automation] Initial check error:", error);
+    }
+  }, 5000); // Wait 5 seconds after startup
 })();
