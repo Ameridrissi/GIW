@@ -1,9 +1,11 @@
 import { SpendingInsightCard } from "@/components/SpendingInsightCard";
 import { CategorySpendingChart } from "@/components/CategorySpendingChart";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { AIInsightAlert } from "@/components/AIInsightAlert";
 import { AIChat } from "@/components/AIChat";
+import { Repeat, Calendar, Clock, DollarSign } from "lucide-react";
 
 export default function InsightsPage() {
   const spendingTrend = [
@@ -135,6 +137,59 @@ export default function InsightsPage() {
 
         <AIChat />
       </div>
+
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-primary" />
+              Payment Automation
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Set up and manage automated payments and recurring transfers
+            </p>
+          </div>
+          <Button data-testid="button-create-automation">
+            <Clock className="h-4 w-4 mr-2" />
+            Create Automation
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-lg border hover-elevate active-elevate-2 cursor-pointer" data-testid="card-recurring-payments">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-3">
+              <Repeat className="h-5 w-5 text-white" />
+            </div>
+            <h4 className="font-semibold mb-1">Recurring Payments</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Automate monthly subscriptions and bills
+            </p>
+            <div className="text-xs text-muted-foreground">0 active automations</div>
+          </div>
+
+          <div className="p-4 rounded-lg border hover-elevate active-elevate-2 cursor-pointer" data-testid="card-scheduled-transfers">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-3">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
+            <h4 className="font-semibold mb-1">Scheduled Transfers</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Schedule one-time or future payments
+            </p>
+            <div className="text-xs text-muted-foreground">0 scheduled payments</div>
+          </div>
+
+          <div className="p-4 rounded-lg border hover-elevate active-elevate-2 cursor-pointer" data-testid="card-smart-savings">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-3">
+              <DollarSign className="h-5 w-5 text-white" />
+            </div>
+            <h4 className="font-semibold mb-1">Smart Savings</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Automatically save based on rules
+            </p>
+            <div className="text-xs text-muted-foreground">0 savings rules</div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
