@@ -95,36 +95,50 @@ export class AutomationService {
       // Create a fresh Circle user token
       const circleUserToken = await circleService.createUser(automation.userId);
       
-      // Get USDC token ID (this would typically be fetched from Circle API or configured)
-      // For Arc Testnet USDC, you'd get this from Circle's token list
-      const usdcTokenId = "USDC_TOKEN_ID"; // Placeholder - in production, fetch from Circle API
-
-      // Execute the transfer via Circle
+      // Initiate Circle transfer (this creates a challenge that requires PIN)
+      // Note: Arc Testnet USDC token ID - in production, fetch from Circle API
+      const usdcTokenId = "36b1737e-c2ed-5915-a218-8e3bf9a2c8f1"; // Arc Testnet USDC
+      
       console.log(`[Automation] Initiating Circle transfer: ${amount} USDC to ${automation.recipient}`);
       
-      // Note: This will create a challenge that needs to be signed
-      // In a production system, you'd need to handle PIN challenges programmatically
-      // For now, we'll create a pending transaction
-      const transaction = await storage.createTransaction({
-        walletId: automation.walletId,
-        type: "sent",
-        merchant: automation.recipient,
-        category: automation.type === "recurring" ? "Recurring Payment" : "Scheduled Transfer",
-        amount: automation.amount,
-        status: "pending",
-      });
+      try {
+        const challengeId = await circleService.createTransfer(
+          circleUserToken,
+          wallet.circleWalletId,
+          automation.recipient,
+          usdcTokenId,
+          automation.amount
+        );
+        
+        console.log(`[Automation] Circle transfer initiated, challengeId: ${challengeId}`);
+        console.log(`[Automation] Transfer requires PIN confirmation to complete on blockchain`);
+        
+        // Create transaction record with challenge reference
+        const transaction = await storage.createTransaction({
+          walletId: automation.walletId,
+          type: "sent",
+          merchant: automation.recipient,
+          category: automation.type === "recurring" ? "Recurring Payment" : "Scheduled Transfer",
+          amount: automation.amount,
+          status: "pending",
+        });
 
-      // Update wallet balance (optimistically)
-      const newBalance = (balance - amount).toFixed(6);
-      await storage.updateWalletBalance(automation.walletId, newBalance);
+        // Update wallet balance to reflect the pending transfer
+        const newBalance = (balance - amount).toFixed(6);
+        await storage.updateWalletBalance(automation.walletId, newBalance);
 
-      console.log(`[Automation] Transaction created: ${transaction.id}`);
-      
-      return {
-        automationId: automation.id,
-        success: true,
-        transactionId: transaction.id,
-      };
+        console.log(`[Automation] Transaction created: ${transaction.id}`);
+        console.log(`[Automation] Challenge ${challengeId} awaiting PIN confirmation`);
+        
+        return {
+          automationId: automation.id,
+          success: true,
+          transactionId: transaction.id,
+        };
+      } catch (transferError: any) {
+        console.error(`[Automation] Circle transfer failed:`, transferError.message);
+        throw new Error(`Circle transfer failed: ${transferError.message}`);
+      }
     } catch (error: any) {
       console.error(`[Automation] Error executing automation ${automation.id}:`, error.message);
       return {

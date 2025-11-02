@@ -148,15 +148,44 @@ The application features complete Circle User-Controlled Wallets integration wit
 - **RPC Endpoint**: https://rpc.testnet.arc.network
 - **Explorer**: https://testnet.arcscan.app
 
+## Payment Automation System
+The application includes a comprehensive automation system for managing recurring payments, scheduled transfers, and savings goals:
+
+### Features
+- **Recurring Payments**: Set up automatic payments on daily, weekly, bi-weekly, or monthly schedules
+- **Scheduled Transfers**: Schedule one-time USDC transfers for specific dates
+- **Savings Goals**: Automate regular contributions to savings goals
+- **Automation Management**: Pause, resume, or delete automations at any time
+- **Execution Engine**: Backend service processes due automations every minute
+
+### Architecture
+- **Frontend**: AutomationsPage with tabs and CreateAutomationModal for all automation types
+- **Backend**: 
+  - AutomationService with execution engine
+  - Periodic scheduler (runs every 60 seconds)
+  - Storage layer for automation CRUD operations
+- **Database**: Automations table tracks all automation records with nextRunDate scheduling
+
+### Important Limitation - Circle PIN Challenges
+**Circle User-Controlled Wallets require PIN confirmation for ALL transfers**, which creates a fundamental limitation for automation execution:
+
+- **Current Behavior**: Automations create transaction records and update balances locally, but transfers are marked as "pending" awaiting manual PIN confirmation
+- **Why**: Circle's user-controlled wallet SDK requires interactive PIN challenges for security - this cannot be automated
+- **Production Solutions**:
+  1. **Circle Business Accounts**: Use Circle's business account products with pre-authorized transfer mechanisms
+  2. **Different Architecture**: Implement a custodial wallet system for automations
+  3. **Hybrid Approach**: Use automations for tracking intent, manual confirmation for execution
+
+For now, the automation system serves as a powerful **intent tracking and reminder system** - automations are tracked, scheduled, and create transaction records on schedule, but require manual PIN confirmation to actually move USDC on the blockchain.
+
 ## Future Enhancements
 - **Add Circle Faucet integration** - Auto-request 10 free test USDC from https://faucet.circle.com
 - **Long-term solution**: Request Replit support to enable polyfill configuration in vite.config.ts for Circle Web SDK integration
-- **Implement Circle transaction challenges for sending USDC** (requires frontend SDK or backend-only approach)
+- **Upgrade to Circle Business Account** - Enable truly automated transfers without PIN challenges
 - Add in-app PIN setup flow once polyfill constraints are resolved
 - Add post-PIN-setup reconciliation to update wallet addresses after blockchain confirmation
 - Implement deposit/withdraw flows with Circle payment integrations
 - Add real-time balance updates with WebSocket support
-- Add automation creation UI for recurring payments and savings goals
 - Optimize AI prompts for more personalized financial advice
 - Add transaction filtering and search capabilities
 - Implement data export features (CSV, PDF statements)
