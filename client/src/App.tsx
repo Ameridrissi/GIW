@@ -47,11 +47,11 @@ function App() {
               <header className="border-b bg-background">
                 {/* Animated Banner */}
                 <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
-                  <div className="animate-slide-banner whitespace-nowrap py-2 px-4">
-                    <span className="inline-block text-white text-sm font-medium">
+                  <div className="animate-slide-banner whitespace-nowrap py-4 px-4">
+                    <span className="inline-block text-white text-lg font-semibold">
                       🎉 Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
                     </span>
-                    <span className="inline-block text-white text-sm font-medium">
+                    <span className="inline-block text-white text-lg font-semibold">
                       🎉 Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
                     </span>
                   </div>
