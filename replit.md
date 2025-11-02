@@ -32,8 +32,6 @@ The application features complete Circle User-Controlled Wallets integration wit
   - Backend gracefully handles wallets without `circle_wallet_id` (returns 200 with helpful message)
   - Frontend refresh button in BalanceCard with spinning icon during sync
   - Refresh button automatically disabled when wallet requires PIN setup
-  - Prominent blue Alert banner displays when PIN setup needed (impossible to miss)
-  - Banner provides direct link to Circle Console for PIN completion
   - Toast notifications provide accurate feedback based on sync status
   - End-to-end tested and architect-approved
 
