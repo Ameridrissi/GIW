@@ -6,22 +6,36 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Wallet, Send, ArrowDownToLine } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import HomePage from "@/pages/HomePage";
 import WalletPage from "@/pages/WalletPage";
 import InsightsPage from "@/pages/InsightsPage";
 import CardsPage from "@/pages/CardsPage";
 import SettingsPage from "@/pages/SettingsPage";
-import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, show the landing page at all routes
+  if (!isAuthenticated) {
+    return <HomePage />;
+  }
+
   return (
     <Switch>
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/" component={HomePage} />
+      <Route path="/" component={WalletPage} />
       <Route path="/wallet" component={WalletPage} />
       <Route path="/insights" component={InsightsPage} />
       <Route path="/cards" component={CardsPage} />
@@ -40,39 +54,63 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <SidebarProvider style={style as React.CSSProperties}>
-          <div className="flex h-screen w-full">
-            <AppSidebar />
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <header className="border-b bg-background">
-                {/* Animated Banner */}
-                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
-                  <div className="animate-slide-banner whitespace-nowrap py-4 px-4">
-                    <span className="inline-block text-white text-lg font-semibold">
-                      🎉 Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
-                    </span>
-                    <span className="inline-block text-white text-lg font-semibold">
-                      🎉 Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-4 p-4">
-                  <SidebarTrigger data-testid="button-sidebar-toggle" />
-                  <ThemeToggle />
-                </div>
-              </header>
-              <main className="flex-1 overflow-auto p-8">
-                <div className="max-w-7xl mx-auto">
-                  <Router />
-                </div>
-              </main>
+        <AuthWrapper>
+          <SidebarProvider style={style as React.CSSProperties}>
+            <div className="flex h-screen w-full">
+              <Router />
             </div>
-          </div>
-        </SidebarProvider>
+          </SidebarProvider>
+        </AuthWrapper>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function AuthWrapper({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <HomePage />;
+  }
+
+  return (
+    <>
+      <AppSidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <header className="border-b bg-background">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+            <div className="animate-slide-banner whitespace-nowrap py-4 px-4">
+              <span className="inline-block text-white text-lg font-semibold">
+                Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
+              </span>
+              <span className="inline-block text-white text-lg font-semibold">
+                Welcome to GIW - Pay Anywhere, Everywhere! • 0% Fees on International Transfers • AI-Powered Wealth Management • Instant USDC Deposits & Withdrawals • Secure Blockchain Transactions • 24/7 Global Support • 
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 p-4">
+            <SidebarTrigger data-testid="button-sidebar-toggle" />
+            <ThemeToggle />
+          </div>
+        </header>
+        <main className="flex-1 overflow-auto p-8">
+          <div className="max-w-7xl mx-auto">{children}</div>
+        </main>
+      </div>
+    </>
   );
 }
 

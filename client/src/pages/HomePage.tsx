@@ -80,7 +80,7 @@ export default function HomePage() {
               size="lg" 
               className="text-lg px-8"
               data-testid="button-get-started"
-              onClick={() => console.log('Get started clicked')}
+              onClick={() => window.location.href = '/api/login'}
             >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -90,9 +90,9 @@ export default function HomePage() {
               variant="outline" 
               className="text-lg px-8 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20"
               data-testid="button-learn-more"
-              onClick={() => console.log('Learn more clicked')}
+              onClick={() => window.location.href = '/api/login'}
             >
-              Learn More
+              Sign In
             </Button>
           </div>
         </div>
