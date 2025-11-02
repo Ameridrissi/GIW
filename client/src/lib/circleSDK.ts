@@ -7,8 +7,11 @@ let sdkInstance: any = null;
  */
 function getCircleSDK(): any {
   if (typeof window === 'undefined' || !(window as any).W3SSdk) {
+    console.error('Circle SDK (W3SSdk) not available on window object');
+    console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('circle') || k.toLowerCase().includes('w3s')));
     throw new Error('Circle SDK not loaded. Ensure the CDN script is included in index.html');
   }
+  console.log('Circle SDK (W3SSdk) found on window object');
   return (window as any).W3SSdk;
 }
 
@@ -17,12 +20,15 @@ function getCircleSDK(): any {
  */
 export function initializeCircleSDK() {
   if (sdkInstance) {
+    console.log('Returning existing Circle SDK instance');
     return sdkInstance;
   }
 
   try {
+    console.log('Initializing new Circle SDK instance...');
     const W3SSdk = getCircleSDK();
     sdkInstance = new W3SSdk();
+    console.log('Circle SDK initialized successfully');
     return sdkInstance;
   } catch (error) {
     console.error('Error initializing Circle SDK:', error);
@@ -42,31 +48,40 @@ export function executeCircleChallenge(
   userToken: string,
   encryptionKey: string
 ): Promise<any> {
+  console.log('executeCircleChallenge called with:', {
+    challengeId: challengeId ? `${challengeId.substring(0, 20)}...` : 'undefined',
+    userTokenLength: userToken?.length || 0,
+    encryptionKeyLength: encryptionKey?.length || 0,
+  });
+
   return new Promise((resolve, reject) => {
-    const sdk = initializeCircleSDK();
-    
     try {
+      const sdk = initializeCircleSDK();
+      
+      console.log('Setting app settings with appId:', CIRCLE_APP_ID);
       sdk.setAppSettings({
         appId: CIRCLE_APP_ID,
       });
 
+      console.log('Setting authentication...');
       sdk.setAuthentication({
         userToken: userToken,
         encryptionKey: encryptionKey,
       });
 
+      console.log('Executing challenge:', challengeId);
       sdk.execute(challengeId, (error: any, result: any) => {
         if (error) {
-          console.error('Circle SDK error:', error);
+          console.error('Circle SDK execute callback error:', error);
           reject(error);
           return;
         }
         
-        console.log('Circle challenge completed:', result);
+        console.log('Circle challenge completed successfully:', result);
         resolve(result);
       });
     } catch (error) {
-      console.error('Error executing Circle challenge:', error);
+      console.error('Error in executeCircleChallenge:', error);
       reject(error);
     }
   });
