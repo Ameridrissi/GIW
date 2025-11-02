@@ -49,8 +49,10 @@ export interface IStorage {
   // Automation operations
   getAutomation(id: string): Promise<Automation | undefined>;
   getUserAutomations(userId: string): Promise<Automation[]>;
+  getAllActiveAutomations(): Promise<Automation[]>;
   createAutomation(automation: InsertAutomation): Promise<Automation>;
   updateAutomationStatus(id: string, status: "active" | "paused" | "completed"): Promise<Automation | undefined>;
+  updateAutomationNextRun(id: string, nextRunDate: Date): Promise<Automation | undefined>;
   deleteAutomation(id: string): Promise<void>;
 }
 
@@ -211,6 +213,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(automations.createdAt));
   }
 
+  async getAllActiveAutomations(): Promise<Automation[]> {
+    return db
+      .select()
+      .from(automations)
+      .where(eq(automations.status, "active"));
+  }
+
   async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
     const [automation] = await db.insert(automations).values(insertAutomation).returning();
     return automation;
@@ -223,6 +232,18 @@ export class DatabaseStorage implements IStorage {
     const [automation] = await db
       .update(automations)
       .set({ status })
+      .where(eq(automations.id, id))
+      .returning();
+    return automation || undefined;
+  }
+
+  async updateAutomationNextRun(
+    id: string,
+    nextRunDate: Date
+  ): Promise<Automation | undefined> {
+    const [automation] = await db
+      .update(automations)
+      .set({ nextRunDate })
       .where(eq(automations.id, id))
       .returning();
     return automation || undefined;
