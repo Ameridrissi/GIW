@@ -403,6 +403,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // USDC Transfer endpoint
+  app.post("/api/transfers", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { walletId, recipientAddress, amount } = req.body;
+
+      // Validate input
+      if (!walletId || !recipientAddress || !amount) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      // Verify wallet ownership
+      const wallet = await storage.getWallet(walletId);
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      if (wallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      // Check wallet has Circle integration
+      if (!wallet.circleWalletId) {
+        return res.status(400).json({ message: "Wallet not linked to Circle blockchain" });
+      }
+
+      // Check sufficient balance
+      const walletBalance = parseFloat(wallet.balance || "0");
+      if (amountNum > walletBalance) {
+        return res.status(400).json({ 
+          message: `Insufficient balance. Available: ${walletBalance} USDC` 
+        });
+      }
+
+      // Create a fresh Circle user token
+      const circleUserToken = await circleService.createUser(userId);
+      
+      // Arc Testnet USDC token ID
+      const usdcTokenId = "36b1737e-c2ed-5915-a218-8e3bf9a2c8f1";
+
+      // Initiate Circle transfer
+      const challengeId = await circleService.createTransfer(
+        circleUserToken,
+        wallet.circleWalletId,
+        recipientAddress,
+        usdcTokenId,
+        amount
+      );
+
+      // Create transaction record
+      const transaction = await storage.createTransaction({
+        walletId: walletId,
+        type: "sent",
+        merchant: recipientAddress,
+        category: "Transfer",
+        amount: amount,
+        status: "pending",
+      });
+
+      // Update wallet balance
+      const newBalance = (walletBalance - amountNum).toFixed(6);
+      await storage.updateWalletBalance(walletId, newBalance);
+
+      res.json({
+        transaction,
+        challengeId,
+        message: "Transfer initiated. Please complete PIN challenge to finalize."
+      });
+    } catch (error: any) {
+      console.error("Error creating transfer:", error);
+      res.status(500).json({ 
+        message: error.message || "Failed to create transfer" 
+      });
+    }
+  });
+
   // Payment card routes
   app.get("/api/cards", isAuthenticated, async (req: any, res) => {
     try {
