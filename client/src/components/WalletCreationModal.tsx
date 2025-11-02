@@ -10,6 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wallet, Copy, CheckCircle2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Wallet as WalletType } from "@shared/schema";
 
 interface WalletCreationModalProps {
   open: boolean;
@@ -19,20 +23,59 @@ interface WalletCreationModalProps {
 export function WalletCreationModal({ open, onClose }: WalletCreationModalProps) {
   const [step, setStep] = useState<"create" | "success">("create");
   const [walletName, setWalletName] = useState("");
-  const [generatedAddress] = useState("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb");
+  const [createdWallet, setCreatedWallet] = useState<WalletType | null>(null);
+  const { toast } = useToast();
+
+  const createMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await apiRequest("POST", "/api/wallets", { name });
+      return response.json();
+    },
+    onSuccess: (wallet: WalletType) => {
+      setCreatedWallet(wallet);
+      setStep("success");
+      queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create wallet. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleCreate = () => {
-    console.log("Creating wallet:", walletName);
-    setStep("success");
+    if (!walletName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a wallet name",
+        variant: "destructive",
+      });
+      return;
+    }
+    createMutation.mutate(walletName);
+  };
+
+  const handleClose = () => {
+    setStep("create");
+    setWalletName("");
+    setCreatedWallet(null);
+    onClose();
   };
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(generatedAddress);
-    console.log("Address copied");
+    if (createdWallet?.address) {
+      navigator.clipboard.writeText(createdWallet.address);
+      toast({
+        title: "Copied",
+        description: "Wallet address copied to clipboard",
+      });
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md" data-testid="modal-wallet-creation">
         {step === "create" ? (
           <>
@@ -64,11 +107,16 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={onClose} className="flex-1">
+              <Button variant="outline" onClick={handleClose} className="flex-1" disabled={createMutation.isPending}>
                 Cancel
               </Button>
-              <Button onClick={handleCreate} className="flex-1" data-testid="button-create-wallet">
-                Create Wallet
+              <Button 
+                onClick={handleCreate} 
+                className="flex-1" 
+                data-testid="button-create-wallet"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? "Creating..." : "Create Wallet"}
               </Button>
             </div>
           </>
@@ -88,7 +136,7 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
                 <Label>Wallet Address</Label>
                 <div className="flex gap-2 mt-2">
                   <Input
-                    value={generatedAddress}
+                    value={createdWallet?.address || ""}
                     readOnly
                     className="font-mono text-sm"
                     data-testid="text-wallet-address"
@@ -104,7 +152,7 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
                 </p>
               </div>
             </div>
-            <Button onClick={onClose} className="w-full" data-testid="button-done">
+            <Button onClick={handleClose} className="w-full" data-testid="button-done">
               Done
             </Button>
           </>
