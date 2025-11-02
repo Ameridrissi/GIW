@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   circleUserToken: text("circle_user_token"),
+  circleUserId: text("circle_user_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -35,6 +36,8 @@ export const wallets = pgTable("wallets", {
   isLinked: boolean("is_linked").notNull().default(false),
   circleWalletId: text("circle_wallet_id"),
   blockchain: text("blockchain").default("MATIC-AMOY"),
+  accountType: text("account_type").default("SCA"),
+  requiresPinSetup: boolean("requires_pin_setup").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -137,6 +140,9 @@ export const insertWalletSchema = createInsertSchema(wallets).omit({
 }).extend({
   name: z.string().min(1).max(100),
   isLinked: z.boolean().default(false),
+  requiresPinSetup: z.boolean().optional(),
+  blockchain: z.string().optional(),
+  accountType: z.string().optional(),
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({

@@ -23,12 +23,14 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserCircleToken(userId: string, circleUserToken: string): Promise<User | undefined>;
+  updateUserCircleData(userId: string, circleUserToken: string, circleUserId: string): Promise<User | undefined>;
 
   // Wallet operations
   getWallet(id: string): Promise<Wallet | undefined>;
   getUserWallets(userId: string): Promise<Wallet[]>;
   createWallet(wallet: InsertWallet): Promise<Wallet>;
   updateWalletBalance(id: string, balance: string): Promise<Wallet | undefined>;
+  updateWalletCircleData(id: string, circleWalletId: string, address: string, requiresPinSetup: boolean): Promise<Wallet | undefined>;
 
   // Transaction operations
   getTransaction(id: string): Promise<Transaction | undefined>;
@@ -82,6 +84,15 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async updateUserCircleData(userId: string, circleUserToken: string, circleUserId: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ circleUserToken, circleUserId, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user || undefined;
+  }
+
   // Wallet operations
   async getWallet(id: string): Promise<Wallet | undefined> {
     const [wallet] = await db.select().from(wallets).where(eq(wallets.id, id));
@@ -101,6 +112,15 @@ export class DatabaseStorage implements IStorage {
     const [wallet] = await db
       .update(wallets)
       .set({ balance })
+      .where(eq(wallets.id, id))
+      .returning();
+    return wallet || undefined;
+  }
+
+  async updateWalletCircleData(id: string, circleWalletId: string, address: string, requiresPinSetup: boolean): Promise<Wallet | undefined> {
+    const [wallet] = await db
+      .update(wallets)
+      .set({ circleWalletId, address, requiresPinSetup })
       .where(eq(wallets.id, id))
       .returning();
     return wallet || undefined;

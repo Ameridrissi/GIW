@@ -33,6 +33,8 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       return response.json();
     },
     onSuccess: async (data: any) => {
+      let finalWallet = data.wallet;
+
       // Check if PIN setup is required (Circle integration)
       if (data.requiresPinSetup && data.challengeId) {
         try {
@@ -50,10 +52,19 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
             data.encryptionKey
           );
 
-          // PIN setup successful
+          // PIN setup successful - now complete the setup
+          const completeResponse = await apiRequest("PATCH", `/api/wallets/${data.wallet.id}/complete-setup`, {});
+          const completedWallet = await completeResponse.json();
+          
+          // Sync balance from Circle
+          const syncResponse = await apiRequest("POST", `/api/wallets/${data.wallet.id}/sync-balance`, {});
+          const syncedWallet = await syncResponse.json();
+          
+          finalWallet = syncedWallet;
+
           toast({
             title: "Success",
-            description: "Wallet PIN created successfully",
+            description: "Wallet created and secured with PIN",
           });
         } catch (error) {
           console.error('Circle PIN setup error:', error);
@@ -66,7 +77,7 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       }
 
       // Show success screen
-      setCreatedWallet(data.wallet);
+      setCreatedWallet(finalWallet);
       setStep("success");
       queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
     },

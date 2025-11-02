@@ -51,7 +51,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If no Circle token, create a Circle user
       if (!circleUserToken) {
         circleUserToken = await circleService.createUser(userId);
-        await storage.updateUserCircleToken(userId, circleUserToken);
+        // Store both token and userId
+        await storage.updateUserCircleData(userId, circleUserToken, userId);
       }
       
       // Create wallet with Circle (returns challenge data for PIN setup)
@@ -62,10 +63,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Math.floor(Math.random() * 16).toString(16)
       ).join('')}`;
       
-      // Store wallet in database with pending status
+      // Store wallet in database with pending PIN setup
       const wallet = await storage.createWallet({ 
         ...validated, 
         address: tempAddress,
+        requiresPinSetup: true,  // Mark as requiring PIN setup
+        blockchain: "MATIC-AMOY",
+        accountType: "SCA",
       });
       
       // Return wallet with full challenge data for frontend PIN setup
@@ -79,6 +83,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error creating wallet:", error);
       res.status(400).json({ message: error.message || "Failed to create wallet" });
+    }
+  });
+
+  app.patch("/api/wallets/:id/complete-setup", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      // Verify ownership
+      const existingWallet = await storage.getWallet(id);
+      if (!existingWallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      if (existingWallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      // Get Circle user token
+      const user = await storage.getUser(userId);
+      if (!user?.circleUserToken) {
+        return res.status(400).json({ message: "No Circle user token found" });
+      }
+
+      // Fetch Circle wallets to get real wallet data
+      const circleWallets = await circleService.getUserWallets(user.circleUserToken);
+      if (circleWallets.length === 0) {
+        return res.status(400).json({ message: "No Circle wallets found" });
+      }
+
+      // Find the most recently created Circle wallet on the same blockchain
+      // Sort by creation time and match blockchain
+      const matchingWallet = circleWallets
+        .filter(w => w.blockchain === existingWallet.blockchain)
+        .sort((a: any, b: any) => {
+          const timeA = a.createDate || a.createdDate || 0;
+          const timeB = b.createDate || b.createdDate || 0;
+          return timeB - timeA;
+        })[0];
+
+      if (!matchingWallet) {
+        return res.status(400).json({ message: "No matching Circle wallet found" });
+      }
+
+      // Update our database wallet with Circle data
+      const wallet = await storage.updateWalletCircleData(
+        id,
+        matchingWallet.id,
+        matchingWallet.address,
+        false  // PIN setup is now complete
+      );
+
+      res.json(wallet);
+    } catch (error) {
+      console.error("Error completing wallet setup:", error);
+      res.status(500).json({ message: "Failed to complete wallet setup" });
+    }
+  });
+
+  app.post("/api/wallets/:id/sync-balance", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      // Verify ownership
+      const existingWallet = await storage.getWallet(id);
+      if (!existingWallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      if (existingWallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      // Get Circle user token
+      const user = await storage.getUser(userId);
+      if (!user?.circleUserToken || !existingWallet.circleWalletId) {
+        return res.status(400).json({ message: "Wallet not fully set up" });
+      }
+
+      // Fetch balance from Circle
+      const balances = await circleService.getWalletBalance(user.circleUserToken, existingWallet.circleWalletId);
+      
+      // Find USDC balance
+      let usdcBalance = "0";
+      for (const tokenBalance of balances) {
+        if (tokenBalance.token?.symbol === "USDC") {
+          usdcBalance = tokenBalance.amount || "0";
+          break;
+        }
+      }
+
+      // Update database
+      const wallet = await storage.updateWalletBalance(id, usdcBalance);
+      res.json(wallet);
+    } catch (error) {
+      console.error("Error syncing wallet balance:", error);
+      res.status(500).json({ message: "Failed to sync balance" });
     }
   });
 

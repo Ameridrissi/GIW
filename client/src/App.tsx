@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import HomePage from "@/pages/HomePage";
+import DashboardPage from "@/pages/DashboardPage";
 import WalletPage from "@/pages/WalletPage";
 import InsightsPage from "@/pages/InsightsPage";
 import CardsPage from "@/pages/CardsPage";
@@ -35,7 +36,7 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/" component={WalletPage} />
+      <Route path="/" component={DashboardPage} />
       <Route path="/wallet" component={WalletPage} />
       <Route path="/insights" component={InsightsPage} />
       <Route path="/cards" component={CardsPage} />
