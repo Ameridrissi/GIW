@@ -3,10 +3,16 @@ import { TransactionList } from "@/components/TransactionList";
 import { PaymentCard } from "@/components/PaymentCard";
 import { QuickActionCard } from "@/components/QuickActionCard";
 import { AIInsightAlert } from "@/components/AIInsightAlert";
-import { CreditCard, Users, Repeat } from "lucide-react";
+import { WalletCreationModal } from "@/components/WalletCreationModal";
+import { LinkWalletModal } from "@/components/LinkWalletModal";
+import { CreditCard, Users, Repeat, Wallet, Link2, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export default function WalletPage() {
+  const [showCreateWallet, setShowCreateWallet] = useState(false);
+  const [showLinkWallet, setShowLinkWallet] = useState(false);
   const [transactions] = useState([
     {
       id: "1",
@@ -51,16 +57,19 @@ export default function WalletPage() {
       title: "Add Card",
       description: "Link a new payment card to your wallet",
       icon: CreditCard,
+      onClick: () => console.log("Add card clicked"),
     },
     {
       title: "Split Bill",
       description: "Divide expenses with friends",
       icon: Users,
+      onClick: () => console.log("Split bill clicked"),
     },
     {
-      title: "Recurring Payment",
-      description: "Set up automatic payments",
+      title: "Automate Payments",
+      description: "Set up recurring and scheduled payments",
       icon: Repeat,
+      onClick: () => console.log("Automate payments clicked"),
     },
   ];
 
@@ -76,12 +85,83 @@ export default function WalletPage() {
         type="tip"
       />
 
+      <Card className="p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-semibold">Your Wallets</h2>
+            <p className="text-sm text-muted-foreground">Manage your USDC wallets and payment methods</p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowLinkWallet(true)}
+              data-testid="button-link-wallet"
+            >
+              <Link2 className="h-5 w-5 mr-2" />
+              Link Wallet
+            </Button>
+            <Button
+              onClick={() => setShowCreateWallet(true)}
+              data-testid="button-create-wallet"
+            >
+              <Wallet className="h-5 w-5 mr-2" />
+              Create Wallet
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-auto py-4 flex-col gap-2"
+            data-testid="button-deposit"
+            onClick={() => console.log("Deposit clicked")}
+          >
+            <ArrowDownToLine className="h-6 w-6 text-green-500" />
+            <div>
+              <div className="font-semibold">Deposit</div>
+              <div className="text-xs text-muted-foreground">Add USDC to wallet</div>
+            </div>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-auto py-4 flex-col gap-2"
+            data-testid="button-withdraw"
+            onClick={() => console.log("Withdraw clicked")}
+          >
+            <ArrowUpFromLine className="h-6 w-6 text-blue-500" />
+            <div>
+              <div className="font-semibold">Withdraw</div>
+              <div className="text-xs text-muted-foreground">Send to bank account</div>
+            </div>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-auto py-4 flex-col gap-2"
+            data-testid="button-automation"
+            onClick={() => console.log("Automation clicked")}
+          >
+            <Repeat className="h-6 w-6 text-purple-500" />
+            <div>
+              <div className="font-semibold">Automation</div>
+              <div className="text-xs text-muted-foreground">Schedule payments</div>
+            </div>
+          </Button>
+        </div>
+      </Card>
+
       <BalanceCard
         balance="2,450.00 USDC"
         usdValue="2,450.00"
         percentChange="+2.4%"
         isPositive={true}
       />
+
+      <WalletCreationModal open={showCreateWallet} onClose={() => setShowCreateWallet(false)} />
+      <LinkWalletModal open={showLinkWallet} onClose={() => setShowLinkWallet(false)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">

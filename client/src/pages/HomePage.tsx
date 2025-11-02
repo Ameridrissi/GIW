@@ -7,23 +7,27 @@ export default function HomePage() {
   const features = [
     {
       icon: Wallet,
-      title: "Multi-Wallet Support",
-      description: "Connect multiple payment cards and USDC wallets in one secure place",
+      title: "Universal Wallet",
+      description: "Create your USDC wallet and connect multiple payment methods globally",
+      color: "from-blue-500 to-cyan-500",
     },
     {
       icon: Brain,
-      title: "AI-Powered Insights",
-      description: "Get smart recommendations and spending analysis powered by AI",
+      title: "AI Wealth Assistant",
+      description: "Chat with your personal AI advisor for smart financial decisions",
+      color: "from-purple-500 to-pink-500",
     },
     {
       icon: Zap,
-      title: "Smart Automation",
-      description: "Set up recurring payments and automatic bill splitting",
+      title: "Payment Automation",
+      description: "Automate future payments, recurring bills, and scheduled transfers",
+      color: "from-orange-500 to-red-500",
     },
     {
       icon: Shield,
-      title: "Secure Transactions",
-      description: "Circle Auth PIN and blockchain security for all payments",
+      title: "Global Security",
+      description: "Enterprise-grade security with instant deposits and withdrawals",
+      color: "from-green-500 to-emerald-500",
     },
   ];
 
@@ -66,10 +70,10 @@ export default function HomePage() {
       >
         <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
           <h1 className="text-5xl md:text-7xl font-bold font-display mb-6 text-white">
-            Smart USDC Wallet with AI Insights
+            <span className="gradient-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Global International Wallet</span>
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-8">
-            Manage your payments, track spending, and get AI-powered financial insights all in one place
+            Pay Anywhere, Everywhere. Your universal USDC wallet for seamless global payments with AI-powered insights
           </p>
           <div className="flex gap-4 justify-center">
             <Button 
@@ -104,9 +108,9 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {features.map((feature) => (
-            <div key={feature.title} className="text-center">
-              <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <feature.icon className="h-8 w-8 text-primary" />
+            <div key={feature.title} className="text-center group">
+              <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-4 shadow-lg transform group-hover:scale-110 transition-transform`}>
+                <feature.icon className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
               <p className="text-muted-foreground">{feature.description}</p>

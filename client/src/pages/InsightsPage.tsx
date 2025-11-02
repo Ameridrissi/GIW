@@ -3,6 +3,7 @@ import { CategorySpendingChart } from "@/components/CategorySpendingChart";
 import { Card } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { AIInsightAlert } from "@/components/AIInsightAlert";
+import { AIChat } from "@/components/AIChat";
 
 export default function InsightsPage() {
   const spendingTrend = [
@@ -107,29 +108,33 @@ export default function InsightsPage() {
         <CategorySpendingChart data={categoryData} />
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">AI Recommendations</h3>
-        <div className="space-y-4">
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <h4 className="font-semibold mb-1">Switch to USDC for travel</h4>
-            <p className="text-sm text-muted-foreground">
-              You could save approximately $45 on foreign transaction fees by using USDC instead of your Visa card for international purchases.
-            </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="text-xl font-semibold mb-4">AI Recommendations</h3>
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <h4 className="font-semibold mb-1">Switch to USDC for travel</h4>
+              <p className="text-sm text-muted-foreground">
+                You could save approximately $45 on foreign transaction fees by using USDC instead of your Visa card for international purchases.
+              </p>
+            </div>
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <h4 className="font-semibold mb-1">Set up recurring payments</h4>
+              <p className="text-sm text-muted-foreground">
+                Your Netflix and Spotify subscriptions could be automated. This would save you time and never miss a payment.
+              </p>
+            </div>
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <h4 className="font-semibold mb-1">Optimize bill splitting</h4>
+              <p className="text-sm text-muted-foreground">
+                You frequently split restaurant bills. Enable automatic splitting to make the process instant.
+              </p>
+            </div>
           </div>
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <h4 className="font-semibold mb-1">Set up recurring payments</h4>
-            <p className="text-sm text-muted-foreground">
-              Your Netflix and Spotify subscriptions could be automated. This would save you time and never miss a payment.
-            </p>
-          </div>
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <h4 className="font-semibold mb-1">Optimize bill splitting</h4>
-            <p className="text-sm text-muted-foreground">
-              You frequently split restaurant bills. Enable automatic splitting to make the process instant.
-            </p>
-          </div>
-        </div>
-      </Card>
+        </Card>
+
+        <AIChat />
+      </div>
     </div>
   );
 }
