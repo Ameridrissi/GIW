@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { NewsCard } from "@/components/NewsCard";
+import { AnimatedBanner } from "@/components/AnimatedBanner";
 import { ArrowRight, Wallet, Brain, Zap, Shield } from "lucide-react";
 import heroImage from "@assets/generated_images/Hero_blockchain_network_background_010a2c15.png";
 
@@ -97,6 +98,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <AnimatedBanner />
 
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
