@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,11 +9,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet, Copy, CheckCircle2, AlertCircle, Lock } from "lucide-react";
+import { Wallet, Copy, CheckCircle2, AlertCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { executeChallenge } from "@/lib/circleSDK";
 import type { Wallet as WalletType } from "@shared/schema";
 
 interface WalletCreationModalProps {
@@ -22,11 +21,9 @@ interface WalletCreationModalProps {
 }
 
 export function WalletCreationModal({ open, onClose }: WalletCreationModalProps) {
-  const [step, setStep] = useState<"create" | "pin" | "success">("create");
+  const [step, setStep] = useState<"create" | "success">("create");
   const [walletName, setWalletName] = useState("");
   const [createdWallet, setCreatedWallet] = useState<WalletType | null>(null);
-  const [challengeData, setChallengeData] = useState<any>(null);
-  const [pinSetupComplete, setPinSetupComplete] = useState(false);
   const { toast } = useToast();
 
   const createMutation = useMutation({
@@ -35,18 +32,13 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       return response.json();
     },
     onSuccess: async (data: any) => {
-      console.log('[Wallet Creation] Response:', data);
-      
-      // Store wallet and challenge data
-      setCreatedWallet(data.wallet);
-      setChallengeData({
-        challengeId: data.challengeId,
-        userToken: data.userToken,
-        encryptionKey: data.encryptionKey,
+      toast({
+        title: "Wallet Created",
+        description: "Your blockchain wallet has been created successfully!",
       });
 
-      // Move to PIN setup step
-      setStep("pin");
+      setCreatedWallet(data.wallet);
+      setStep("success");
       queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
     },
     onError: () => {
@@ -57,55 +49,6 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       });
     },
   });
-
-  // Execute PIN challenge when challenge data is available
-  useEffect(() => {
-    if (step === "pin" && challengeData && !pinSetupComplete) {
-      console.log('[Circle SDK] Executing PIN challenge...');
-      
-      executeChallenge(
-        challengeData.userToken,
-        challengeData.encryptionKey,
-        challengeData.challengeId
-      )
-        .then((result) => {
-          console.log('[Circle SDK] Challenge result:', result);
-          
-          if (result.status === 'COMPLETE') {
-            setPinSetupComplete(true);
-            
-            toast({
-              title: "PIN Set Successfully",
-              description: "Your wallet is now fully secured!",
-            });
-
-            // Mark wallet as setup complete
-            apiRequest("PATCH", `/api/wallets/${createdWallet?.id}/complete-setup`, {
-              requiresPinSetup: false,
-            }).then(() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
-              setStep("success");
-            }).catch((error) => {
-              console.error('[Wallet Setup] Failed to mark as complete:', error);
-              // Still show success to user since PIN is set
-              setStep("success");
-            });
-          } else {
-            throw new Error(`Challenge status: ${result.status}`);
-          }
-        })
-        .catch((error) => {
-          console.error('[Circle SDK] Challenge failed:', error);
-          toast({
-            title: "PIN Setup Failed",
-            description: "Please try again or complete setup from your dashboard.",
-            variant: "destructive",
-          });
-          // Still show success screen but with warning
-          setStep("success");
-        });
-    }
-  }, [step, challengeData, pinSetupComplete, createdWallet, toast]);
 
   const handleCreate = () => {
     if (!walletName.trim()) {
@@ -123,8 +66,6 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
     setStep("create");
     setWalletName("");
     setCreatedWallet(null);
-    setChallengeData(null);
-    setPinSetupComplete(false);
     onClose();
   };
 
@@ -182,33 +123,6 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
               >
                 {createMutation.isPending ? "Creating..." : "Create Wallet"}
               </Button>
-            </div>
-          </>
-        )}
-
-        {step === "pin" && (
-          <>
-            <DialogHeader>
-              <div className="mx-auto h-16 w-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-4">
-                <Lock className="h-8 w-8 text-blue-500 animate-pulse" />
-              </div>
-              <DialogTitle className="text-center">Setting Up Your PIN</DialogTitle>
-              <DialogDescription className="text-center">
-                Please complete the PIN setup in the Circle security window
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-6">
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <p className="text-sm text-center text-blue-600 dark:text-blue-400">
-                  Circle's secure PIN entry window should open automatically. Please create a 6-digit PIN to protect your wallet.
-                </p>
-              </div>
-              <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              </div>
-              <p className="text-xs text-center text-muted-foreground">
-                This may take a few moments...
-              </p>
             </div>
           </>
         )}

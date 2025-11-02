@@ -1,5 +1,4 @@
 import { Switch, Route } from "wouter";
-import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,7 +7,6 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { initializeCircleSDK } from "@/lib/circleSDK";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import WalletPage from "@/pages/WalletPage";
@@ -55,17 +53,6 @@ function App() {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
   };
-
-  useEffect(() => {
-    // Initialize Circle SDK with App ID
-    const CIRCLE_APP_ID = "502da187-5a8a-53c5-9856-3d9a9ac6dd56";
-    try {
-      initializeCircleSDK(CIRCLE_APP_ID);
-      console.log('[Circle SDK] Initialized successfully');
-    } catch (error) {
-      console.error('[Circle SDK] Initialization failed:', error);
-    }
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
