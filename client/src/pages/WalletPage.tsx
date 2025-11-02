@@ -32,17 +32,19 @@ export default function WalletPage() {
     },
     onSuccess: (data: any) => {
       console.log('[Balance Sync] Response:', data);
-      // Check if wallet requires PIN setup
+      // Always invalidate cache to refresh wallet data
+      queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
+      
+      // Show appropriate message
       if (data.requiresPinSetup) {
-        console.log('[Balance Sync] Showing PIN setup toast');
+        console.log('[Balance Sync] Wallet setup in progress');
         toast({
-          title: "PIN Setup Required",
-          description: data.message || "Please complete PIN setup via Circle Console before syncing balance",
+          title: "Syncing Wallet",
+          description: data.message || "Fetching wallet information from blockchain...",
           variant: "default",
         });
       } else {
-        console.log('[Balance Sync] Showing success toast and invalidating cache');
-        queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
+        console.log('[Balance Sync] Balance synced successfully');
         toast({
           title: "Balance Synced",
           description: "Your wallet balance has been updated from the blockchain",

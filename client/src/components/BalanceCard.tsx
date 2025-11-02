@@ -53,17 +53,15 @@ export function BalanceCard({ balance, usdValue, percentChange, isPositive, onRe
                 variant="outline" 
                 size="icon" 
                 onClick={onRefresh}
-                disabled={!onRefresh || isRefreshing || requiresPinSetup}
+                disabled={!onRefresh || isRefreshing}
                 data-testid="button-refresh"
               >
                 <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
             </TooltipTrigger>
-            {requiresPinSetup && (
-              <TooltipContent>
-                <p>Complete PIN setup via Circle Console before syncing</p>
-              </TooltipContent>
-            )}
+            <TooltipContent>
+              <p>{isRefreshing ? 'Syncing balance...' : 'Sync balance from blockchain'}</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

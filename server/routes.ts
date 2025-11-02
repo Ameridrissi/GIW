@@ -163,13 +163,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      // If wallet requires PIN setup, return success with helpful message
-      if (!existingWallet.circleWalletId || existingWallet.requiresPinSetup) {
-        return res.json({ 
-          message: "Please complete PIN setup via Circle Console before syncing balance",
-          balance: "0.00",
-          requiresPinSetup: true
-        });
+      // If wallet doesn't have Circle wallet ID yet, try to fetch it
+      if (!existingWallet.circleWalletId) {
+        console.log('[Balance Sync] No Circle wallet ID, attempting to fetch from Circle API');
+        try {
+          // Get a fresh Circle user token
+          const circleUserToken = await circleService.createUser(userId);
+          
+          // Fetch Circle wallets to find this wallet
+          const circleWallets = await circleService.getUserWallets(circleUserToken);
+          console.log('[Balance Sync] Fetched Circle wallets:', { count: circleWallets.length });
+          
+          // Find matching wallet by address (case-insensitive)
+          const matchingWallet = circleWallets.find((w: any) => 
+            w.address?.toLowerCase() === existingWallet.address.toLowerCase()
+          );
+          
+          if (matchingWallet) {
+            console.log('[Balance Sync] Found matching Circle wallet:', matchingWallet.id);
+            // Update database with Circle wallet ID
+            await storage.updateWalletCircleData(
+              id,
+              matchingWallet.id,
+              matchingWallet.address,
+              false  // Mark PIN setup as complete since wallet exists on blockchain
+            );
+            // Update local reference
+            existingWallet.circleWalletId = matchingWallet.id;
+            existingWallet.requiresPinSetup = false;
+          } else {
+            console.log('[Balance Sync] No matching Circle wallet found yet');
+            return res.json({ 
+              message: "Wallet is being created on the blockchain. Please try again in a few moments.",
+              balance: "0.00",
+              requiresPinSetup: true
+            });
+          }
+        } catch (error) {
+          console.error('[Balance Sync] Error fetching Circle wallet ID:', error);
+          return res.json({ 
+            message: "Unable to fetch wallet info from Circle. Please try again later.",
+            balance: "0.00",
+            requiresPinSetup: true
+          });
+        }
       }
 
       // Get a fresh Circle user token (tokens expire after 60 minutes)
