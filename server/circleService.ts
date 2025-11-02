@@ -82,40 +82,65 @@ export class CircleService {
   }
 
   /**
-   * Initialize user and create their first wallet with PIN
+   * Initiate PIN setup for a user (separate from wallet creation)
+   * This is the correct approach - set up PIN first, then create wallets
    * @param userToken - Token from createUser
-   * @param blockchains - Array of blockchain networks (e.g., ['ARC-TESTNET', 'ETH-SEPOLIA'])
-   * @returns Full challenge data including challengeId, userToken, and encryptionKey
+   * @returns Challenge data for PIN setup
    */
-  async createUserPinWithWallets(
-    userToken: string,
-    blockchains: any[] = ['ARC-TESTNET']
-  ): Promise<{ challengeId: string; userToken: string; encryptionKey: string }> {
+  async createUserPin(userToken: string): Promise<{ challengeId: string; encryptionKey: string }> {
     try {
-      console.log(`[Circle] Creating PIN with wallets for blockchains: ${blockchains.join(', ')}`);
+      console.log('[Circle] Initiating PIN setup for user');
       console.log(`[Circle] UserToken length: ${userToken?.length || 0}`);
       
-      const response: any = await circleClient.createUserPinWithWallets({
+      const response: any = await circleClient.createUserPin({
         userToken: userToken,
-        accountType: 'SCA' as any, // Smart Contract Account
-        blockchains: blockchains as any,
       });
       
       console.log('[Circle] PIN challenge created successfully');
       return {
         challengeId: response.data?.challengeId || '',
-        userToken: userToken,
         encryptionKey: response.data?.encryptionKey || '',
       };
     } catch (error: any) {
-      console.error('[Circle] Error creating user PIN with wallets:', {
+      console.error('[Circle] Error creating user PIN:', {
         message: error.message,
         status: error.response?.status || error.status,
         data: error.response?.data,
-        userTokenProvided: !!userToken,
-        userTokenLength: userToken?.length || 0
       });
-      throw new Error('Failed to create user PIN and wallet');
+      throw new Error('Failed to initiate PIN setup');
+    }
+  }
+
+  /**
+   * Create a wallet for a user (after PIN is already set up)
+   * @param userToken - User's token
+   * @param blockchains - Array of blockchain networks
+   * @returns Wallet creation challenge data
+   */
+  async createWallet(
+    userToken: string,
+    blockchains: any[] = ['ARC-TESTNET']
+  ): Promise<{ challengeId: string }> {
+    try {
+      console.log(`[Circle] Creating wallet for blockchains: ${blockchains.join(', ')}`);
+      
+      const response: any = await circleClient.createWallet({
+        userToken: userToken,
+        blockchains: blockchains as any,
+        accountType: 'SCA' as any,
+      });
+      
+      console.log('[Circle] Wallet creation initiated');
+      return {
+        challengeId: response.data?.challengeId || '',
+      };
+    } catch (error: any) {
+      console.error('[Circle] Error creating wallet:', {
+        message: error.message,
+        status: error.response?.status || error.status,
+        data: error.response?.data,
+      });
+      throw new Error('Failed to create wallet');
     }
   }
 

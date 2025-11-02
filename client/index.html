@@ -12,6 +12,17 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Polyfill for Circle SDK - must run before any ES modules
+      if (typeof window !== 'undefined') {
+        if (!window.process) {
+          window.process = { env: {}, browser: true };
+        }
+        if (!window.global) {
+          window.global = window;
+        }
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

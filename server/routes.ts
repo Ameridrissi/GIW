@@ -106,6 +106,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initiate PIN setup for a user (must be done before creating wallets)
+  app.post("/api/initiate-pin", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get a fresh Circle user token
+      const circleUserToken = await circleService.createUser(userId);
+      await storage.updateUserCircleData(userId, circleUserToken, userId);
+      
+      // Initiate PIN setup (separate from wallet creation)
+      const challengeData = await circleService.createUserPin(circleUserToken);
+      console.log('[PIN Setup] Challenge created:', { hasChallenge: !!challengeData.challengeId });
+      
+      res.json({
+        challengeId: challengeData.challengeId,
+        userToken: circleUserToken,
+        encryptionKey: challengeData.encryptionKey,
+      });
+    } catch (error: any) {
+      console.error("Error initiating PIN setup:", error);
+      res.status(500).json({ message: error.message || "Failed to initiate PIN setup" });
+    }
+  });
+
   app.post("/api/wallets", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -118,9 +142,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store the Circle user ID for reference (token is not cached)
       await storage.updateUserCircleData(userId, circleUserToken, userId);
       
-      // Create wallet with Circle (returns challenge data for PIN setup)
-      const challengeData = await circleService.createUserPinWithWallets(circleUserToken);
+      // Create wallet (PIN must already be set up)
+      const challengeData = await circleService.createWallet(circleUserToken);
       console.log('[Wallet Creation] Challenge data received:', { hasChallenge: !!challengeData.challengeId });
+      
+      // Execute challenge to create wallet
+      // Note: Circle SDK must execute this challenge on frontend to complete wallet creation
       
       // Fetch Circle wallets to get the actual wallet ID and address
       const circleWallets = await circleService.getUserWallets(userId);
@@ -145,18 +172,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validated, 
         address: walletAddress,
         circleWalletId: circleWalletId,
-        requiresPinSetup: true,  // Mark as requiring PIN setup
+        requiresPinSetup: false,  // PIN should already be set up
         blockchain: "ARC-TESTNET",
         accountType: "SCA",
       });
       
-      // Return wallet with full challenge data for frontend PIN setup
+      // Return wallet with challenge data for frontend to execute
       res.json({ 
         wallet,
         challengeId: challengeData.challengeId,
-        userToken: challengeData.userToken,
-        encryptionKey: challengeData.encryptionKey,
-        requiresPinSetup: true 
+        userToken: circleUserToken,
+        requiresPinSetup: false 
       });
     } catch (error: any) {
       console.error("Error creating wallet:", error);
