@@ -61,7 +61,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <div 
-        className="relative h-[500px] flex items-center justify-center overflow-hidden"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url(${heroImage})`,
           backgroundSize: "cover",
