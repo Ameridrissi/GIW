@@ -12,16 +12,23 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // Polyfill for Circle SDK - must run before any ES modules
-      if (typeof window !== 'undefined') {
-        if (!window.process) {
-          window.process = { env: {}, browser: true };
-        }
-        if (!window.global) {
-          window.global = window;
-        }
+    <script type="module">
+      // Comprehensive polyfills for Circle SDK - must run before app loads
+      import { Buffer } from 'buffer';
+      import process from 'process';
+      import { EventEmitter } from 'events';
+      
+      // Set global polyfills
+      window.Buffer = Buffer;
+      window.process = process;
+      window.global = window;
+      
+      // Add stream polyfill for util.inherits
+      if (!window.stream) {
+        window.stream = EventEmitter;
       }
+      
+      console.log('[Polyfills] Loaded successfully');
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
