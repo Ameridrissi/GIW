@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  circleUserToken: text("circle_user_token"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -32,6 +33,8 @@ export const wallets = pgTable("wallets", {
   address: text("address").notNull().unique(),
   balance: numeric("balance", { precision: 20, scale: 6 }).notNull().default("0"),
   isLinked: boolean("is_linked").notNull().default(false),
+  circleWalletId: text("circle_wallet_id"),
+  blockchain: text("blockchain").default("MATIC-AMOY"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
