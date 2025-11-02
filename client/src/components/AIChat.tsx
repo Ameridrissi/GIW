@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Send, Bot, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -13,6 +16,7 @@ interface Message {
 }
 
 export function AIChat() {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -22,9 +26,32 @@ export function AIChat() {
   ]);
   const [input, setInput] = useState("");
 
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await apiRequest("POST", "/api/ai/chat", { message });
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: data.response,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    },
+    onError: (error: Error) => {
+      console.error("AI chat error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || chatMutation.isPending) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -33,17 +60,8 @@ export function AIChat() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    chatMutation.mutate(input);
     setInput("");
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: `Based on your spending patterns, I recommend allocating more funds to your savings. Your current spending on "${input}" shows room for optimization.`,
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
   };
 
   return (
@@ -91,6 +109,22 @@ export function AIChat() {
               )}
             </div>
           ))}
+          {chatMutation.isPending && (
+            <div className="flex gap-3 justify-start">
+              <Avatar className="h-8 w-8 bg-primary/10">
+                <AvatarFallback>
+                  <Bot className="h-4 w-4 text-primary" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="rounded-lg px-4 py-3 bg-muted">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
@@ -101,8 +135,14 @@ export function AIChat() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about investments, budgeting, or financial planning..."
             data-testid="input-ai-chat"
+            disabled={chatMutation.isPending}
           />
-          <Button type="submit" size="icon" data-testid="button-send-message">
+          <Button 
+            type="submit" 
+            size="icon" 
+            data-testid="button-send-message"
+            disabled={chatMutation.isPending || !input.trim()}
+          >
             <Send className="h-5 w-5" />
           </Button>
         </div>

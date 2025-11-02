@@ -52,17 +52,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/wallets/:id/balance", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { balance } = req.body;
       
-      if (!balance || isNaN(parseFloat(balance))) {
+      if (balance === undefined || balance === null || isNaN(parseFloat(balance))) {
         return res.status(400).json({ message: "Invalid balance" });
       }
 
-      const wallet = await storage.updateWalletBalance(id, balance);
-      if (!wallet) {
+      // Verify ownership
+      const existingWallet = await storage.getWallet(id);
+      if (!existingWallet) {
         return res.status(404).json({ message: "Wallet not found" });
       }
+      if (existingWallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const wallet = await storage.updateWalletBalance(id, balance);
       res.json(wallet);
     } catch (error) {
       console.error("Error updating wallet balance:", error);
@@ -73,7 +80,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction routes
   app.get("/api/wallets/:walletId/transactions", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { walletId } = req.params;
+      
+      // Verify wallet ownership
+      const wallet = await storage.getWallet(walletId);
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      if (wallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
       const transactions = await storage.getWalletTransactions(walletId);
       res.json(transactions);
     } catch (error) {
@@ -84,7 +102,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const validated = insertTransactionSchema.parse(req.body);
+      
+      // Verify wallet ownership
+      const wallet = await storage.getWallet(validated.walletId);
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      if (wallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
       const transaction = await storage.createTransaction(validated);
       res.json(transaction);
     } catch (error: any) {
@@ -95,6 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/transactions/:id/status", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { status } = req.body;
 
@@ -102,10 +132,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid status" });
       }
 
-      const transaction = await storage.updateTransactionStatus(id, status);
-      if (!transaction) {
+      // Verify ownership via wallet
+      const existing = await storage.getTransaction(id);
+      if (!existing) {
         return res.status(404).json({ message: "Transaction not found" });
       }
+      
+      const wallet = await storage.getWallet(existing.walletId);
+      if (!wallet || wallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const transaction = await storage.updateTransactionStatus(id, status);
       res.json(transaction);
     } catch (error) {
       console.error("Error updating transaction status:", error);
@@ -141,6 +179,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
+      
+      // Verify card ownership
+      const card = await storage.getPaymentCard(id);
+      if (!card) {
+        return res.status(404).json({ message: "Card not found" });
+      }
+      if (card.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
       await storage.setDefaultCard(userId, id);
       res.json({ success: true });
     } catch (error) {
@@ -151,7 +199,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/cards/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
+      
+      // Verify card ownership
+      const card = await storage.getPaymentCard(id);
+      if (!card) {
+        return res.status(404).json({ message: "Card not found" });
+      }
+      if (card.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
       await storage.deletePaymentCard(id);
       res.json({ success: true });
     } catch (error) {
@@ -176,6 +235,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const validated = insertAutomationSchema.parse({ ...req.body, userId });
+      
+      // Verify wallet ownership
+      const wallet = await storage.getWallet(validated.walletId);
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      if (wallet.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
       const automation = await storage.createAutomation(validated);
       res.json(automation);
     } catch (error: any) {
@@ -186,6 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/automations/:id/status", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { status } = req.body;
 
@@ -193,10 +263,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid status" });
       }
 
-      const automation = await storage.updateAutomationStatus(id, status);
-      if (!automation) {
+      // Verify ownership
+      const existing = await storage.getAutomation(id);
+      if (!existing) {
         return res.status(404).json({ message: "Automation not found" });
       }
+      if (existing.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const automation = await storage.updateAutomationStatus(id, status);
       res.json(automation);
     } catch (error) {
       console.error("Error updating automation status:", error);
@@ -206,12 +282,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/automations/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
+      
+      // Verify ownership
+      const automation = await storage.getAutomation(id);
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+      if (automation.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
       await storage.deleteAutomation(id);
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting automation:", error);
       res.status(500).json({ message: "Failed to delete automation" });
+    }
+  });
+
+  // AI Chat route
+  app.post("/api/ai/chat", isAuthenticated, async (req: any, res) => {
+    try {
+      const { message } = req.body;
+      
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        console.error("OPENAI_API_KEY is not configured");
+        return res.status(503).json({ message: "AI service is not available" });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful financial advisor assistant for GIW (Global International Wallet), a USDC wallet application. Help users with financial advice, spending insights, and wallet management questions. Be concise and friendly.",
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+        max_tokens: 500,
+      });
+
+      const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
+      res.json({ response });
+    } catch (error: any) {
+      console.error("Error in AI chat:", error);
+      
+      // Don't leak implementation details
+      const userMessage = error.status === 401 
+        ? "AI service authentication failed" 
+        : "Failed to process AI request. Please try again later.";
+      
+      res.status(500).json({ message: userMessage });
     }
   });
 
