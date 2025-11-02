@@ -4,6 +4,7 @@ import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Wallet } from "@shared/schema";
+import QRCode from "react-qr-code";
 
 interface DepositModalProps {
   open: boolean;
@@ -48,6 +49,20 @@ export function DepositModal({ open, onClose, wallet }: DepositModalProps) {
         </DialogHeader>
         
         <div className="space-y-4">
+          <div className="flex flex-col items-center p-6 bg-muted rounded-lg" data-testid="qr-code-container">
+            <div className="bg-white p-4 rounded-lg mb-3">
+              <QRCode
+                value={wallet.address}
+                size={200}
+                level="H"
+                data-testid="qr-code"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Scan QR code to get wallet address
+            </p>
+          </div>
+
           <div className="p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground mb-2">Wallet Address</p>
             <div className="flex items-center gap-2">

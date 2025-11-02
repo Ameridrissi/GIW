@@ -38,6 +38,18 @@ The application features complete Circle User-Controlled Wallets integration wit
   - Updates existing wallet records with Circle wallet IDs if missing
   - Prominent "Import from Circle" button in UI when no wallets exist
   - Solves issue where wallets created via Circle Console don't appear in app
+- ✅ **Implemented Send/Receive (Deposit/Withdraw) Functionality**
+  - Added `POST /api/transfers` endpoint for Circle blockchain transfers
+  - WithdrawModal with full Circle integration and balance validation
+  - DepositModal shows wallet address with QR code for easy scanning
+  - QR codes powered by react-qr-code library (200x200px, high error correction)
+  - Copy to clipboard functionality for wallet addresses
+- ✅ **Complete Payment Cards Management System**
+  - Full CRUD API for payment cards (GET, POST, PATCH, DELETE)
+  - Support for Visa, Mastercard, and American Express
+  - AddCardModal with form validation
+  - Set default card and delete card functionality
+  - CardsPage connected to backend with real-time data
 
 ## Architecture
 
