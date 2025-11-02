@@ -22,6 +22,7 @@ export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserCircleToken(userId: string, circleUserToken: string): Promise<User | undefined>;
 
   // Wallet operations
   getWallet(id: string): Promise<Wallet | undefined>;
@@ -70,6 +71,15 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async updateUserCircleToken(userId: string, circleUserToken: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ circleUserToken, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user || undefined;
   }
 
   // Wallet operations

@@ -13,6 +13,7 @@ import { Wallet, Copy, CheckCircle2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { executeCircleChallenge, setCircleLayout } from "@/lib/circleSDK";
 import type { Wallet as WalletType } from "@shared/schema";
 
 interface WalletCreationModalProps {
@@ -31,8 +32,41 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       const response = await apiRequest("POST", "/api/wallets", { name });
       return response.json();
     },
-    onSuccess: (wallet: WalletType) => {
-      setCreatedWallet(wallet);
+    onSuccess: async (data: any) => {
+      // Check if PIN setup is required (Circle integration)
+      if (data.requiresPinSetup && data.challengeId) {
+        try {
+          // Configure Circle SDK layout
+          setCircleLayout({
+            title: 'Secure Your Wallet',
+            subtitle: 'Create a PIN to protect your wallet',
+            showCloseButton: false,
+          });
+
+          // Execute Circle challenge for PIN setup
+          await executeCircleChallenge(
+            data.challengeId,
+            data.userToken,
+            data.encryptionKey
+          );
+
+          // PIN setup successful
+          toast({
+            title: "Success",
+            description: "Wallet PIN created successfully",
+          });
+        } catch (error) {
+          console.error('Circle PIN setup error:', error);
+          toast({
+            title: "Warning",
+            description: "Wallet created but PIN setup incomplete. You can set it up later.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // Show success screen
+      setCreatedWallet(data.wallet);
       setStep("success");
       queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
     },

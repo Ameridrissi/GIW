@@ -42,12 +42,12 @@ export class CircleService {
    * Initialize user and create their first wallet with PIN
    * @param userToken - Token from createUser
    * @param blockchains - Array of blockchain networks (e.g., ['MATIC-AMOY', 'ETH-SEPOLIA'])
-   * @returns Challenge ID for frontend PIN setup
+   * @returns Full challenge data including challengeId, userToken, and encryptionKey
    */
   async createUserPinWithWallets(
     userToken: string,
     blockchains: any[] = ['MATIC-AMOY']
-  ): Promise<string> {
+  ): Promise<{ challengeId: string; userToken: string; encryptionKey: string }> {
     try {
       const response: any = await circleClient.createUserPinWithWallets({
         userToken: userToken,
@@ -55,7 +55,11 @@ export class CircleService {
         blockchains: blockchains as any,
       });
       
-      return response.data?.challengeId || '';
+      return {
+        challengeId: response.data?.challengeId || '',
+        userToken: userToken,
+        encryptionKey: response.data?.encryptionKey || '',
+      };
     } catch (error) {
       console.error('Error creating user PIN with wallets:', error);
       throw new Error('Failed to create user PIN and wallet');

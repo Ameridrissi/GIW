@@ -9,6 +9,7 @@ import {
   insertPaymentCardSchema,
   insertAutomationSchema 
 } from "@shared/schema";
+import { circleService } from "./circleService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -43,13 +44,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const validated = insertWalletSchema.parse({ ...req.body, userId });
       
-      // Generate a unique wallet address (simulating blockchain address)
-      const address = `0x${Array.from({ length: 40 }, () => 
+      // Check if user has a Circle token
+      let user = await storage.getUser(userId);
+      let circleUserToken = user?.circleUserToken;
+      
+      // If no Circle token, create a Circle user
+      if (!circleUserToken) {
+        circleUserToken = await circleService.createUser(userId);
+        await storage.updateUserCircleToken(userId, circleUserToken);
+      }
+      
+      // Create wallet with Circle (returns challenge data for PIN setup)
+      const challengeData = await circleService.createUserPinWithWallets(circleUserToken);
+      
+      // For now, generate a temporary address (will be replaced after PIN setup)
+      const tempAddress = `0x${Array.from({ length: 40 }, () => 
         Math.floor(Math.random() * 16).toString(16)
       ).join('')}`;
       
-      const wallet = await storage.createWallet({ ...validated, address });
-      res.json(wallet);
+      // Store wallet in database with pending status
+      const wallet = await storage.createWallet({ 
+        ...validated, 
+        address: tempAddress,
+      });
+      
+      // Return wallet with full challenge data for frontend PIN setup
+      res.json({ 
+        wallet,
+        challengeId: challengeData.challengeId,
+        userToken: challengeData.userToken,
+        encryptionKey: challengeData.encryptionKey,
+        requiresPinSetup: true 
+      });
     } catch (error: any) {
       console.error("Error creating wallet:", error);
       res.status(400).json({ message: error.message || "Failed to create wallet" });
