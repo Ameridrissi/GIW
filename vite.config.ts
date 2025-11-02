@@ -2,9 +2,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { nodePolyfills } from "vite-plugin-node-polyfills"; // ADD THIS LINE
 
 export default defineConfig({
   plugins: [
+    nodePolyfills(), // ADD THIS LINE (must be first in plugins array)
     react(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
