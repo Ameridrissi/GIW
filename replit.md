@@ -10,16 +10,21 @@ The application features complete Circle User-Controlled Wallets integration wit
 - ✅ Set up PostgreSQL database with complete schema
 - ✅ Implemented Replit Auth integration for authentication
 - ✅ **Integrated Circle User-Controlled Wallets SDK (backend + frontend)**
+- ✅ **CRITICAL FIX: Circle userToken lifecycle management**
+  - Fixed: `createUser()` doesn't return userToken - must call `createUserToken()` separately
+  - All Circle API operations now generate fresh tokens (60-minute expiration handled)
+  - Prevents token expiration failures in wallet operations
 - ✅ **Implemented PIN-based wallet security using Circle's challenge-based authentication**
-- ✅ **Updated database schema with Circle-specific fields (userToken, walletId, blockchain)**
+- ✅ **Updated database schema with Circle-specific fields (walletId, blockchain, requiresPinSetup)**
 - ✅ Built complete REST API for wallets, transactions, cards, and automations with resource ownership security
-- ✅ Integrated OpenAI for AI chat assistant
+- ✅ Integrated OpenAI for AI chat assistant (blueprint ready)
 - ✅ Connected frontend to all backend APIs with Circle SDK integration
 - ✅ **Circle SDK loaded via CDN to bypass Vite bundling issues**
 - ✅ **Frontend Circle SDK helper for executing PIN setup challenges**
 - ✅ **Fixed 409 error handling for existing Circle users**
-- ✅ End-to-end Circle authentication data flow validated and working
-- ✅ **Application fully integrated with Circle blockchain wallets - ready for testing**
+- ✅ **Created dedicated Dashboard page with wallet overview, stats, and transaction summary**
+- ✅ End-to-end wallet creation tested successfully with real Circle TEST_API_KEY
+- ✅ **Application fully functional with Circle blockchain wallets**
 
 ## Architecture
 
@@ -41,9 +46,14 @@ The application features complete Circle User-Controlled Wallets integration wit
 
 ### Circle Integration Architecture
 - **Backend Circle Service** (`server/circleService.ts`): Wrapper for Circle API operations
-  - User creation and token management
+  - User creation and **fresh token generation** (solves 60-min expiration)
   - Wallet creation with challenge-based PIN setup
+  - Balance syncing from Circle testnet
   - Transaction execution (planned)
+- **Token Management Strategy**: 
+  - All routes generate fresh userTokens via `createUserToken()` before Circle API calls
+  - Tokens expire after 60 minutes - never cached or reused
+  - User creation is idempotent (409 handled gracefully)
 - **Frontend Circle SDK Helper** (`client/src/lib/circleSDK.ts`): Circle Web SDK initialization and challenge execution
   - PIN setup UI modal rendering
   - Challenge authentication with userToken and encryptionKey

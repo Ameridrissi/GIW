@@ -27,83 +27,57 @@ export class CircleService {
    */
   async createUser(userId: string): Promise<string> {
     try {
-      const response: any = await circleClient.createUser({
+      // First, try to create the user (this will fail with 409 if user exists)
+      await circleClient.createUser({
+        userId: userId,
+      });
+      console.log('[Circle] User created successfully');
+    } catch (error: any) {
+      const status = error.response?.status || error.status || error.code;
+      
+      // If user doesn't already exist (not 409), this is a real error
+      if (status !== 409 && status !== '409') {
+        console.error('[Circle] Error creating Circle user:', {
+          message: error.message,
+          status,
+          data: error.response?.data
+        });
+        throw new Error('Failed to create Circle user');
+      }
+      
+      console.log(`[Circle] User already exists for userId: ${userId} (409 - this is normal)`);
+    }
+    
+    // Always create a new token (for both new and existing users)
+    // According to Circle SDK types, createUser returns UserResponse (no token),
+    // and we need to call createUserToken to get the actual userToken
+    try {
+      console.log('[Circle] Fetching user token...');
+      const tokenResponse: any = await circleClient.createUserToken({
         userId: userId,
       });
       
-      console.log('[Circle] createUser response structure:', {
-        hasData: !!response.data,
-        dataKeys: response.data ? Object.keys(response.data) : [],
-        userToken: response.data?.userToken,
-        user: response.data?.user,
-        fullData: JSON.stringify(response.data).substring(0, 200)
-      });
+      // The response should be: { data: { userToken: string } }
+      const userToken = tokenResponse.data?.userToken || tokenResponse.userToken || '';
       
-      // Try different possible response structures
-      const userToken = response.data?.userToken 
-        || response.data?.user?.token 
-        || response.userToken 
-        || response.data?.data?.userToken
-        || '';
-      
-      console.log('[Circle] Extracted userToken length:', userToken.length);
+      console.log('[Circle] User token retrieved successfully, length:', userToken.length);
       
       if (!userToken) {
-        console.error('[Circle] No userToken found in response!');
+        console.error('[Circle] No userToken in response:', {
+          hasData: !!tokenResponse.data,
+          dataKeys: tokenResponse.data ? Object.keys(tokenResponse.data) : []
+        });
         throw new Error('Circle API returned no userToken');
       }
       
       return userToken;
-    } catch (error: any) {
-      const status = error.response?.status || error.status || error.code;
-      console.log(`[Circle] createUser error - status: ${status}, userId: ${userId}`);
-      
-      // If user already exists (409), get a new token for them
-      if (status === 409 || status === '409') {
-        console.log(`[Circle] User already exists for userId: ${userId}, fetching new token...`);
-        try {
-          const tokenResponse: any = await circleClient.createUserToken({
-            userId: userId,
-          });
-          
-          console.log('[Circle] createUserToken response structure:', {
-            hasData: !!tokenResponse.data,
-            dataKeys: tokenResponse.data ? Object.keys(tokenResponse.data) : [],
-            userToken: tokenResponse.data?.userToken,
-            fullData: JSON.stringify(tokenResponse.data).substring(0, 200)
-          });
-          
-          // Try different possible response structures
-          const userToken = tokenResponse.data?.userToken 
-            || tokenResponse.data?.user?.token 
-            || tokenResponse.userToken 
-            || tokenResponse.data?.data?.userToken
-            || '';
-          
-          console.log('[Circle] Extracted userToken length:', userToken.length);
-          
-          if (!userToken) {
-            console.error('[Circle] No userToken found in createUserToken response!');
-            throw new Error('Circle API returned no userToken');
-          }
-          
-          return userToken;
-        } catch (tokenError: any) {
-          console.error('[Circle] Error creating user token:', {
-            message: tokenError.message,
-            status: tokenError.response?.status || tokenError.status,
-            data: tokenError.response?.data
-          });
-          throw new Error('Failed to get user token');
-        }
-      }
-      
-      console.error('[Circle] Error creating Circle user:', {
-        message: error.message,
-        status,
-        data: error.response?.data
+    } catch (tokenError: any) {
+      console.error('[Circle] Error creating user token:', {
+        message: tokenError.message,
+        status: tokenError.response?.status || tokenError.status,
+        data: tokenError.response?.data
       });
-      throw new Error('Failed to create Circle user');
+      throw new Error('Failed to get user token');
     }
   }
 

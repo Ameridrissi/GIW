@@ -44,16 +44,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const validated = insertWalletSchema.parse({ ...req.body, userId });
       
-      // Check if user has a Circle token
-      let user = await storage.getUser(userId);
-      let circleUserToken = user?.circleUserToken;
+      // Always get a fresh Circle user token (tokens expire after 60 minutes)
+      // This creates the Circle user if needed and always returns a fresh token
+      const circleUserToken = await circleService.createUser(userId);
       
-      // If no Circle token, create a Circle user
-      if (!circleUserToken) {
-        circleUserToken = await circleService.createUser(userId);
-        // Store both token and userId
-        await storage.updateUserCircleData(userId, circleUserToken, userId);
-      }
+      // Store the Circle user ID for reference (token is not cached)
+      await storage.updateUserCircleData(userId, circleUserToken, userId);
       
       // Create wallet with Circle (returns challenge data for PIN setup)
       const challengeData = await circleService.createUserPinWithWallets(circleUserToken);
@@ -100,14 +96,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      // Get Circle user token
-      const user = await storage.getUser(userId);
-      if (!user?.circleUserToken) {
-        return res.status(400).json({ message: "No Circle user token found" });
-      }
+      // Get a fresh Circle user token (tokens expire after 60 minutes)
+      const circleUserToken = await circleService.createUser(userId);
 
       // Fetch Circle wallets to get real wallet data
-      const circleWallets = await circleService.getUserWallets(user.circleUserToken);
+      const circleWallets = await circleService.getUserWallets(circleUserToken);
       if (circleWallets.length === 0) {
         return res.status(400).json({ message: "No Circle wallets found" });
       }
@@ -155,14 +148,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      // Get Circle user token
-      const user = await storage.getUser(userId);
-      if (!user?.circleUserToken || !existingWallet.circleWalletId) {
+      // Get a fresh Circle user token (tokens expire after 60 minutes)
+      const circleUserToken = await circleService.createUser(userId);
+      
+      if (!existingWallet.circleWalletId) {
         return res.status(400).json({ message: "Wallet not fully set up" });
       }
 
       // Fetch balance from Circle
-      const balances = await circleService.getWalletBalance(user.circleUserToken, existingWallet.circleWalletId);
+      const balances = await circleService.getWalletBalance(circleUserToken, existingWallet.circleWalletId);
       
       // Find USDC balance
       let usdcBalance = "0";

@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Wallet, TrendingUp, Activity, Plus, ArrowDownToLine, ArrowUpFromLine, CreditCard, Repeat } from "lucide-react";
 import { useState } from "react";
 import { WalletCreationModal } from "@/components/WalletCreationModal";
+import { DepositModal } from "@/components/DepositModal";
+import { WithdrawModal } from "@/components/WithdrawModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Wallet as WalletType, Transaction } from "@shared/schema";
 
 export default function DashboardPage() {
   const [showCreateWallet, setShowCreateWallet] = useState(false);
+  const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<WalletType | null>(null);
 
   const { data: wallets = [], isLoading: walletsLoading } = useQuery<WalletType[]>({
     queryKey: ["/api/wallets"],
@@ -103,10 +108,34 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-2">
-            <Button size="sm" variant="outline" className="flex-1" data-testid="button-deposit">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1" 
+              data-testid="button-deposit"
+              onClick={() => {
+                if (wallets.length > 0) {
+                  setSelectedWallet(wallets[0]);
+                  setShowDeposit(true);
+                }
+              }}
+              disabled={wallets.length === 0}
+            >
               <ArrowDownToLine className="h-3 w-3" />
             </Button>
-            <Button size="sm" variant="outline" className="flex-1" data-testid="button-withdraw">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1" 
+              data-testid="button-withdraw"
+              onClick={() => {
+                if (wallets.length > 0) {
+                  setSelectedWallet(wallets[0]);
+                  setShowWithdraw(true);
+                }
+              }}
+              disabled={wallets.length === 0}
+            >
               <ArrowUpFromLine className="h-3 w-3" />
             </Button>
           </CardContent>
@@ -163,11 +192,38 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold" data-testid={`text-wallet-balance-${wallet.id}`}>
-                      ${parseFloat(wallet.balance || "0").toFixed(2)}
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-xl font-bold" data-testid={`text-wallet-balance-${wallet.id}`}>
+                        ${parseFloat(wallet.balance || "0").toFixed(2)}
+                      </div>
+                      <p className="text-sm text-muted-foreground">USDC</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">USDC</p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedWallet(wallet);
+                          setShowDeposit(true);
+                        }}
+                        data-testid={`button-deposit-${wallet.id}`}
+                      >
+                        <ArrowDownToLine className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedWallet(wallet);
+                          setShowWithdraw(true);
+                        }}
+                        disabled={wallet.requiresPinSetup}
+                        data-testid={`button-withdraw-${wallet.id}`}
+                      >
+                        <ArrowUpFromLine className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -220,6 +276,22 @@ export default function DashboardPage() {
       </Card>
 
       <WalletCreationModal open={showCreateWallet} onClose={() => setShowCreateWallet(false)} />
+      <DepositModal 
+        open={showDeposit} 
+        onClose={() => {
+          setShowDeposit(false);
+          setSelectedWallet(null);
+        }} 
+        wallet={selectedWallet}
+      />
+      <WithdrawModal 
+        open={showWithdraw} 
+        onClose={() => {
+          setShowWithdraw(false);
+          setSelectedWallet(null);
+        }} 
+        wallet={selectedWallet}
+      />
     </div>
   );
 }
