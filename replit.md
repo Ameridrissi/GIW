@@ -1,37 +1,53 @@
 # GIW - Global International Wallet
 
 ## Overview
-GIW is a modern USDC wallet application with AI-powered financial insights. Built with React, Express, PostgreSQL, and OpenAI integration, it provides users with a seamless experience for managing digital assets, tracking transactions, and receiving intelligent financial advice.
+GIW is a modern USDC wallet application with **real blockchain wallets** powered by Circle's User-Controlled Wallets SDK. Built with React, Express, PostgreSQL, Circle SDK, and OpenAI integration, it provides users with a seamless experience for managing real digital assets, executing blockchain transactions, and receiving intelligent financial advice.
 
 ## Current State
-The application has a complete backend API with authentication, comprehensive frontend UI, and database persistence. Users can authenticate via Replit Auth (supporting Google, GitHub, email/password), manage wallets, track transactions, link payment cards, and interact with an AI financial advisor.
+The application features complete Circle User-Controlled Wallets integration with PIN-based security, Replit authentication, comprehensive backend API, and frontend UI. Users authenticate via Replit Auth (supporting Google, GitHub, email/password), create Circle-powered USDC wallets with PIN protection, execute real blockchain transactions, link payment cards, and interact with an AI financial advisor.
 
 ## Recent Changes (November 2, 2025)
 - ✅ Set up PostgreSQL database with complete schema
 - ✅ Implemented Replit Auth integration for authentication
+- ✅ **Integrated Circle User-Controlled Wallets SDK (backend + frontend)**
+- ✅ **Implemented PIN-based wallet security using Circle's challenge-based authentication**
+- ✅ **Updated database schema with Circle-specific fields (userToken, walletId, blockchain)**
 - ✅ Built complete REST API for wallets, transactions, cards, and automations with resource ownership security
 - ✅ Integrated OpenAI for AI chat assistant
-- ✅ Connected frontend to all backend APIs across all pages
-- ✅ Implemented wallet address auto-generation on the backend
-- ✅ End-to-end testing validated: authentication, wallet creation, transaction tracking, error handling all working
-- ✅ Application ready for deployment
+- ✅ Connected frontend to all backend APIs with Circle SDK integration
+- ✅ **Frontend Circle SDK helper for executing PIN setup challenges**
+- ✅ End-to-end Circle authentication data flow validated
+- ✅ Application ready for real blockchain wallet creation
 
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: React + TypeScript, Wouter (routing), TanStack Query, Shadcn UI
-- **Backend**: Express.js, TypeScript
+- **Frontend**: React + TypeScript, Wouter (routing), TanStack Query, Shadcn UI, Circle Web SDK (@circle-fin/w3s-pw-web-sdk)
+- **Backend**: Express.js, TypeScript, Circle User-Controlled Wallets SDK (@circle-fin/user-controlled-wallets)
 - **Database**: PostgreSQL (Neon) with Drizzle ORM
-- **Authentication**: Replit Auth (OpenID Connect)
+- **Authentication**: Replit Auth (OpenID Connect) for app access, Circle PIN for wallet security
+- **Blockchain**: Circle User-Controlled Wallets (Smart Contract Accounts on MATIC-AMOY testnet)
 - **AI**: OpenAI GPT-4o-mini for financial advice
 
 ### Database Schema
-- **users**: User profiles (Replit Auth managed)
-- **sessions**: Session storage for auth
-- **wallets**: USDC wallets with balance tracking
-- **transactions**: Transaction history (sent/received)
+- **users**: User profiles with Circle integration (circleUserToken for API access)
+- **sessions**: Session storage for Replit Auth
+- **wallets**: Real blockchain wallets with Circle wallet IDs, addresses, and balance tracking
+- **transactions**: Transaction history (sent/received) with blockchain support
 - **payment_cards**: Linked payment methods
 - **automations**: Recurring payments and scheduled transfers
+
+### Circle Integration Architecture
+- **Backend Circle Service** (`server/circleService.ts`): Wrapper for Circle API operations
+  - User creation and token management
+  - Wallet creation with challenge-based PIN setup
+  - Transaction execution (planned)
+- **Frontend Circle SDK Helper** (`client/src/lib/circleSDK.ts`): Circle Web SDK initialization and challenge execution
+  - PIN setup UI modal rendering
+  - Challenge authentication with userToken and encryptionKey
+  - Customizable layout configuration
+- **Challenge-Based Flow**: Backend creates challenges → Frontend executes via SDK → User completes PIN/transaction
+- **Security Model**: Replit Auth for app access, Circle PIN for wallet-specific operations
 
 ### API Endpoints
 - `GET /api/auth/user` - Get current user
@@ -68,23 +84,37 @@ The application has a complete backend API with authentication, comprehensive fr
 ## Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
 - `SESSION_SECRET`: Session encryption key (auto-configured)
+- `CIRCLE_API_KEY`: Circle API key for blockchain wallet operations (**REQUIRED**)
 - `OPENAI_API_KEY`: OpenAI API key for AI features
 - `REPL_ID`: Replit application ID (auto-configured)
 - `ISSUER_URL`: OIDC issuer URL (defaults to Replit OIDC)
 
 ## Deployment Notes
-**IMPORTANT**: Before deploying to production, ensure you configure your OpenAI API key:
-1. Set the `OPENAI_API_KEY` environment variable with a valid OpenAI API key
-2. Without this key, the AI chat assistant feature will not function
-3. All other features (wallet management, transactions, cards) work independently of the OpenAI integration
+**CRITICAL**: Before deploying, ensure required API keys are configured:
+1. **Circle API Key** (`CIRCLE_API_KEY`): **REQUIRED** for blockchain wallet creation and transactions
+   - Without this key, wallet creation and blockchain operations will fail
+   - Obtain from Circle Developer Console (App ID: 502da187-5a8a-53c5-9856-3d9a9ac6dd56)
+2. **OpenAI API Key** (`OPENAI_API_KEY`): Required for AI chat assistant
+   - Without this key, the AI chat assistant feature will not function
+   - All other features work independently of OpenAI integration
+
+**Circle Wallet Creation Flow**:
+1. User creates wallet via UI → Backend creates Circle user (if first wallet) and wallet challenge
+2. Backend returns full authentication data (challengeId, userToken, encryptionKey) to frontend
+3. Frontend Circle SDK executes challenge → User sets PIN via Circle's modal UI
+4. PIN setup completes → Real blockchain wallet created on MATIC-AMOY testnet
+5. Wallet address and ID stored in database for future transactions
 
 ## Future Enhancements
+- **Implement Circle transaction challenges for sending USDC** (next priority)
+- Add post-challenge reconciliation to update wallet addresses after PIN setup
+- Implement deposit/withdraw flows with Circle payment integrations
 - Add real-time balance updates with WebSocket support
-- Implement deposit/withdraw flows with actual payment integrations
 - Add automation creation UI for recurring payments and savings goals
 - Optimize AI prompts for more personalized financial advice
 - Add transaction filtering and search capabilities
 - Implement data export features (CSV, PDF statements)
+- Consider production blockchain migration (MATIC-AMOY testnet → Polygon mainnet)
 
 ## Development
 - Run: `npm run dev` (starts both Express and Vite)
