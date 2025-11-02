@@ -35,7 +35,7 @@ export const wallets = pgTable("wallets", {
   balance: numeric("balance", { precision: 20, scale: 6 }).notNull().default("0"),
   isLinked: boolean("is_linked").notNull().default(false),
   circleWalletId: text("circle_wallet_id"),
-  blockchain: text("blockchain").default("MATIC-AMOY"),
+  blockchain: text("blockchain").default("ARC-TESTNET"),
   accountType: text("account_type").default("SCA"),
   requiresPinSetup: boolean("requires_pin_setup").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),

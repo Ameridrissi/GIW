@@ -70,7 +70,7 @@ export function DepositModal({ open, onClose, wallet }: DepositModalProps) {
             <div className="text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Blockchain:</span>
-                <span className="font-mono">{wallet.blockchain || 'MATIC-AMOY'}</span>
+                <span className="font-mono">{wallet.blockchain || 'ARC-TESTNET'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Token:</span>
@@ -89,7 +89,7 @@ export function DepositModal({ open, onClose, wallet }: DepositModalProps) {
 
           <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              <strong>Note:</strong> Only send USDC on {wallet.blockchain || 'MATIC-AMOY'} network. Sending other tokens or using wrong network may result in permanent loss of funds.
+              <strong>Note:</strong> Only send USDC on {wallet.blockchain || 'ARC-TESTNET'} network. Sending other tokens or using wrong network may result in permanent loss of funds.
             </p>
           </div>
 

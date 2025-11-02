@@ -137,7 +137,7 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
               </div>
               <DialogTitle className="text-center">Wallet Created Successfully!</DialogTitle>
               <DialogDescription className="text-center">
-                Your blockchain wallet is ready on {createdWallet?.blockchain || 'MATIC-AMOY'} testnet
+                Your blockchain wallet is ready on {createdWallet?.blockchain || 'ARC-TESTNET'} testnet
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">

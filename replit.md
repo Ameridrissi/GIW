@@ -35,7 +35,7 @@ The application features complete Circle User-Controlled Wallets integration wit
 - **Backend**: Express.js, TypeScript, Circle User-Controlled Wallets SDK (@circle-fin/user-controlled-wallets)
 - **Database**: PostgreSQL (Neon) with Drizzle ORM
 - **Authentication**: Replit Auth (OpenID Connect) for app access, Circle PIN for wallet security (deferred setup)
-- **Blockchain**: Circle User-Controlled Wallets (Smart Contract Accounts on MATIC-AMOY testnet)
+- **Blockchain**: Circle User-Controlled Wallets (Smart Contract Accounts on **Arc Testnet** - Circle's L1 blockchain)
 - **AI**: OpenAI GPT-4o-mini for financial advice
 
 ### Database Schema
@@ -118,12 +118,23 @@ The application features complete Circle User-Controlled Wallets integration wit
 1. User creates wallet via UI → Backend creates Circle user (if first wallet) and wallet
 2. Backend returns wallet data with `requiresPinSetup: true` flag
 3. Frontend shows success modal with blockchain details and PIN setup reminder
-4. Real blockchain wallet created on MATIC-AMOY testnet (address pending confirmation)
+4. Real blockchain wallet created on **Arc Testnet** (address pending confirmation)
 5. Dashboard displays PIN setup banner with links to Circle documentation and console
 6. User completes PIN setup externally via Circle Console
 7. Wallet becomes fully functional for transactions after PIN setup
 
+**Why Arc Testnet?**
+- **Circle's newest L1 blockchain** - Launched October 28, 2025
+- **USDC as gas token** - Users pay fees in USDC (18 decimals), not volatile crypto tokens
+- **Sub-second finality** - Extremely fast transaction confirmation
+- **100+ institutional partners** - BlackRock, Visa, Mastercard, HSBC, Goldman Sachs, Coinbase, AWS
+- **Free testnet USDC** - Available at https://faucet.circle.com
+- **Chain ID**: 5042002
+- **RPC Endpoint**: https://rpc.testnet.arc.network
+- **Explorer**: https://testnet.arcscan.app
+
 ## Future Enhancements
+- **Add Circle Faucet integration** - Auto-request 10 free test USDC from https://faucet.circle.com
 - **Long-term solution**: Request Replit support to enable polyfill configuration in vite.config.ts for Circle Web SDK integration
 - **Implement Circle transaction challenges for sending USDC** (requires frontend SDK or backend-only approach)
 - Add in-app PIN setup flow once polyfill constraints are resolved
@@ -134,7 +145,7 @@ The application features complete Circle User-Controlled Wallets integration wit
 - Optimize AI prompts for more personalized financial advice
 - Add transaction filtering and search capabilities
 - Implement data export features (CSV, PDF statements)
-- Consider production blockchain migration (MATIC-AMOY testnet → Polygon mainnet)
+- **Migrate to Arc Mainnet** when it launches in 2026
 
 ## Development
 - Run: `npm run dev` (starts both Express and Vite)

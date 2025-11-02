@@ -84,12 +84,12 @@ export class CircleService {
   /**
    * Initialize user and create their first wallet with PIN
    * @param userToken - Token from createUser
-   * @param blockchains - Array of blockchain networks (e.g., ['MATIC-AMOY', 'ETH-SEPOLIA'])
+   * @param blockchains - Array of blockchain networks (e.g., ['ARC-TESTNET', 'ETH-SEPOLIA'])
    * @returns Full challenge data including challengeId, userToken, and encryptionKey
    */
   async createUserPinWithWallets(
     userToken: string,
-    blockchains: any[] = ['MATIC-AMOY']
+    blockchains: any[] = ['ARC-TESTNET']
   ): Promise<{ challengeId: string; userToken: string; encryptionKey: string }> {
     try {
       console.log(`[Circle] Creating PIN with wallets for blockchains: ${blockchains.join(', ')}`);

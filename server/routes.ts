@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validated, 
         address: tempAddress,
         requiresPinSetup: true,  // Mark as requiring PIN setup
-        blockchain: "MATIC-AMOY",
+        blockchain: "ARC-TESTNET",
         accountType: "SCA",
       });
       

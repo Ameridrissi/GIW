@@ -1,0 +1,52 @@
+# Connect to Arc
+
+This page shows how to connect your app and wallet to the Arc blockchain.
+
+## Network details
+
+### Arc Testnet
+
+| Name             | Value                                                                                                                                                                                                                                                                                                                                                                                   |
+| :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Network**      | Arc Testnet                                                                                                                                                                                                                                                                                                                                                                             |
+| **RPC endpoint** | [https://rpc.testnet.arc.network](https://rpc.testnet.arc.network) <br /> Alternatives: <br />   • [https://rpc.blockdaemon.testnet.arc.network](https://rpc.blockdaemon.testnet.arc.network) <br />   • [https://rpc.drpc.testnet.arc.network](https://rpc.drpc.testnet.arc.network) <br />   • [https://rpc.quicknode.testnet.arc.network](https://rpc.quicknode.testnet.arc.network) |
+| **WebSocket**    | [wss://rpc.testnet.arc.network](wss://rpc.testnet.arc.network) <br /> Alternatives: <br />   • [wss://rpc.drpc.testnet.arc.network](wss://rpc.drpc.testnet.arc.network) <br />   • [wss://rpc.quicknode.testnet.arc.network](wss://rpc.quicknode.testnet.arc.network)                                                                                                                   |
+| **Chain ID**     | 5042002                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Currency**     | USDC                                                                                                                                                                                                                                                                                                                                                                                    |
+| **Explorer**     | [https://testnet.arcscan.app](https://testnet.arcscan.app)                                                                                                                                                                                                                                                                                                                              |
+| **Faucet**       | [https://faucet.circle.com](https://faucet.circle.com)                                                                                                                                                                                                                                                                                                                                  |
+
+## Wallet setup
+
+### Add Arc Testnet
+
+1. Open MetaMask → **Add network** → **Add a network manually**.
+2. Fill in:
+
+| Field               | Value                                                              |
+| :------------------ | :----------------------------------------------------------------- |
+| **Network name**    | Arc Testnet                                                        |
+| **New RPC URL**     | [https://rpc.testnet.arc.network](https://rpc.testnet.arc.network) |
+| **Chain ID**        | 5042002                                                            |
+| **Currency symbol** | USDC                                                               |
+| **Explorer URL**    | [https://testnet.arcscan.app](https://testnet.arcscan.app)         |
+
+3. Save, then switch to Arc.
+
+<Tip>
+  If your wallet supports **custom gas tokens**, ensure display/decimals for
+  USDC (18 decimals) and clearly label fees as USDC.
+</Tip>
+
+## Gas and fees
+
+| Key               | Value                                                                       |
+| :---------------- | :-------------------------------------------------------------------------- |
+| **Unit**          | USDC (18 decimals)                                                          |
+| **Pricing**       | EIP-1559-like base fee with exponentially weighted moving average smoothing |
+| **Best practice** | Surface fees in USDC, fetch base fee dynamically, set modest priority tip   |
+
+<Note>
+  By using the Arc Network Testnet, you agree to the [Terms of Service](/terms)
+  and [Privacy Policy](https://www.circle.com/legal/privacy-policy).
+</Note>
