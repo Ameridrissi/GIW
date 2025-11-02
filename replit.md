@@ -43,7 +43,7 @@ The application features complete Circle User-Controlled Wallets integration wit
 - **Database**: PostgreSQL (Neon) with Drizzle ORM
 - **Authentication**: Replit Auth (OpenID Connect) for app access, Circle PIN for wallet security (deferred setup)
 - **Blockchain**: Circle User-Controlled Wallets (Smart Contract Accounts on **Arc Testnet** - Circle's L1 blockchain)
-- **AI**: OpenAI GPT-4o-mini for financial advice
+- **AI**: AI/ML API (aimlapi.com) with GPT-4o for financial advice
 
 ### Database Schema
 - **users**: User profiles with Circle integration (circleUserToken for API access)
@@ -110,7 +110,7 @@ The application features complete Circle User-Controlled Wallets integration wit
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
 - `SESSION_SECRET`: Session encryption key (auto-configured)
 - `CIRCLE_API_KEY`: Circle API key for blockchain wallet operations (**REQUIRED**)
-- `OPENAI_API_KEY`: OpenAI API key for AI features
+- `OPENAI_API_KEY`: AI/ML API key for AI chat features (from aimlapi.com)
 - `REPL_ID`: Replit application ID (auto-configured)
 - `ISSUER_URL`: OIDC issuer URL (defaults to Replit OIDC)
 
@@ -119,9 +119,11 @@ The application features complete Circle User-Controlled Wallets integration wit
 1. **Circle API Key** (`CIRCLE_API_KEY`): **REQUIRED** for blockchain wallet creation and transactions
    - Without this key, wallet creation and blockchain operations will fail
    - Obtain from Circle Developer Console (App ID: 502da187-5a8a-53c5-9856-3d9a9ac6dd56)
-2. **OpenAI API Key** (`OPENAI_API_KEY`): Required for AI chat assistant
+2. **AI/ML API Key** (`OPENAI_API_KEY`): Required for AI chat assistant
+   - Get your API key from https://aimlapi.com/
    - Without this key, the AI chat assistant feature will not function
-   - All other features work independently of OpenAI integration
+   - Uses GPT-4o model via AI/ML API (base URL: https://api.aimlapi.com/v1)
+   - All other features work independently of AI integration
 
 **Circle Wallet Creation Flow (Deferred PIN Setup)**:
 1. User creates wallet via UI → Backend creates Circle user (if first wallet) and wallet

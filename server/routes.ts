@@ -465,10 +465,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
+        baseURL: "https://api.aimlapi.com/v1",
       });
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
