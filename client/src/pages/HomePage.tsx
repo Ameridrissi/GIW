@@ -98,7 +98,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-[1400px] mx-auto px-8 py-16">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold font-display mb-4">Why Choose GIW?</h2>
           <p className="text-xl text-muted-foreground">
