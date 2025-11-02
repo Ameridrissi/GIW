@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, TrendingUp, Activity, Plus, ArrowDownToLine, ArrowUpFromLine, CreditCard, Repeat, Shield, ExternalLink } from "lucide-react";
+import { Wallet, TrendingUp, Activity, Plus, ArrowDownToLine, ArrowUpFromLine, CreditCard, Repeat } from "lucide-react";
 import { useState } from "react";
 import { WalletCreationModal } from "@/components/WalletCreationModal";
 import { DepositModal } from "@/components/DepositModal";
@@ -30,9 +30,6 @@ export default function DashboardPage() {
   const allTransactions: Transaction[] = [];
   const recentTransactions = allTransactions.slice(0, 5);
 
-  // Check if any wallet requires PIN setup
-  const walletsNeedingPinSetup = wallets.filter(w => w.requiresPinSetup);
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -50,61 +47,6 @@ export default function DashboardPage() {
           Create Wallet
         </Button>
       </div>
-
-      {/* PIN Setup Banner */}
-      {!walletsLoading && walletsNeedingPinSetup.length > 0 && (
-        <Card className="border-orange-500/50 bg-orange-500/5" data-testid="banner-pin-setup">
-          <CardHeader>
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="flex-1 space-y-2">
-                <CardTitle className="text-lg">Complete Wallet Security Setup</CardTitle>
-                <CardDescription>
-                  {walletsNeedingPinSetup.length === 1 ? '1 wallet needs' : `${walletsNeedingPinSetup.length} wallets need`} PIN setup to enable transactions. 
-                  Setting up a 6-digit PIN protects your wallet and allows you to send USDC securely.
-                </CardDescription>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={() => window.open('https://developers.circle.com/w3s/docs/user-controlled-initialization', '_blank')}
-                    data-testid="button-setup-pin-guide"
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    View Setup Guide
-                    <ExternalLink className="h-3 w-3 ml-2" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open('https://console.circle.com', '_blank')}
-                    data-testid="button-circle-console"
-                  >
-                    Open Circle Console
-                    <ExternalLink className="h-3 w-3 ml-2" />
-                  </Button>
-                </div>
-                <div className="pt-2 space-y-1.5">
-                  <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Wallets requiring setup:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {walletsNeedingPinSetup.map(wallet => (
-                      <div 
-                        key={wallet.id} 
-                        className="text-xs px-2 py-1 rounded bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-orange-300"
-                        data-testid={`badge-pin-required-${wallet.id}`}
-                      >
-                        {wallet.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
