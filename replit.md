@@ -27,6 +27,15 @@ The application features complete Circle User-Controlled Wallets integration wit
 - ✅ **Added PIN setup instructions UI with links to Circle documentation**
 - ✅ End-to-end wallet creation tested successfully with real Circle TEST_API_KEY
 - ✅ **Application fully functional with Circle blockchain wallets**
+- ✅ **Implemented Balance Refresh Feature with Graceful PIN Setup Handling**
+  - Added `POST /api/wallets/:id/sync-balance` endpoint to fetch real balance from Circle API
+  - Backend gracefully handles wallets without `circle_wallet_id` (returns 200 with helpful message)
+  - Frontend refresh button in BalanceCard with spinning icon during sync
+  - Refresh button automatically disabled when wallet requires PIN setup
+  - Prominent blue Alert banner displays when PIN setup needed (impossible to miss)
+  - Banner provides direct link to Circle Console for PIN completion
+  - Toast notifications provide accurate feedback based on sync status
+  - End-to-end tested and architect-approved
 
 ## Architecture
 
@@ -69,7 +78,9 @@ The application features complete Circle User-Controlled Wallets integration wit
 - `GET /api/auth/user` - Get current user
 - `GET /api/wallets` - List user wallets
 - `POST /api/wallets` - Create new wallet
-- `PATCH /api/wallets/:id/balance` - Update balance
+- `POST /api/wallets/:id/sync-balance` - **Sync wallet balance from Arc Testnet blockchain via Circle API**
+- `PATCH /api/wallets/:id/balance` - Update balance (manual)
+- `PATCH /api/wallets/:id/complete-setup` - Complete wallet setup after PIN challenge
 - `GET /api/wallets/:walletId/transactions` - List transactions
 - `POST /api/transactions` - Create transaction
 - `PATCH /api/transactions/:id/status` - Update transaction status
