@@ -19,7 +19,7 @@ export default function DashboardPage() {
     queryKey: ["/api/wallets"],
   });
 
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string }>({
     queryKey: ["/api/auth/user"],
   });
 
