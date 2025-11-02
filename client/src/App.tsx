@@ -11,6 +11,7 @@ import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import WalletPage from "@/pages/WalletPage";
 import InsightsPage from "@/pages/InsightsPage";
+import AutomationsPage from "@/pages/AutomationsPage";
 import CardsPage from "@/pages/CardsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "@/pages/not-found";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/" component={DashboardPage} />
       <Route path="/wallet" component={WalletPage} />
       <Route path="/insights" component={InsightsPage} />
+      <Route path="/automations" component={AutomationsPage} />
       <Route path="/cards" component={CardsPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />

@@ -1,4 +1,4 @@
-import { Home, Wallet, TrendingUp, CreditCard, Settings, LogOut } from "lucide-react";
+import { Home, Wallet, TrendingUp, Zap, CreditCard, Settings, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -28,6 +28,11 @@ const menuItems = [
     title: "AI Insights",
     url: "/insights",
     icon: TrendingUp,
+  },
+  {
+    title: "Automations",
+    url: "/automations",
+    icon: Zap,
   },
   {
     title: "Cards",
