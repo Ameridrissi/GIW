@@ -5,7 +5,8 @@ import { QuickActionCard } from "@/components/QuickActionCard";
 import { AIInsightAlert } from "@/components/AIInsightAlert";
 import { WalletCreationModal } from "@/components/WalletCreationModal";
 import { LinkWalletModal } from "@/components/LinkWalletModal";
-import { CreditCard, Users, Repeat, Wallet, Link2, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { CreditCard, Users, Repeat, Wallet, Link2, ArrowDownToLine, ArrowUpFromLine, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,14 +28,27 @@ export default function WalletPage() {
 
   const syncBalanceMutation = useMutation({
     mutationFn: async (walletId: string) => {
+      console.log('[Balance Sync] Calling API for wallet:', walletId);
       return await apiRequest("POST", `/api/wallets/${walletId}/sync-balance`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
-      toast({
-        title: "Balance Synced",
-        description: "Your wallet balance has been updated from the blockchain",
-      });
+    onSuccess: (data: any) => {
+      console.log('[Balance Sync] Response:', data);
+      // Check if wallet requires PIN setup
+      if (data.requiresPinSetup) {
+        console.log('[Balance Sync] Showing PIN setup toast');
+        toast({
+          title: "PIN Setup Required",
+          description: data.message || "Please complete PIN setup via Circle Console before syncing balance",
+          variant: "default",
+        });
+      } else {
+        console.log('[Balance Sync] Showing success toast and invalidating cache');
+        queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
+        toast({
+          title: "Balance Synced",
+          description: "Your wallet balance has been updated from the blockchain",
+        });
+      }
     },
     onError: () => {
       toast({
@@ -153,6 +167,24 @@ export default function WalletPage() {
         </Card>
       ) : (
         <>
+          {primaryWallet?.requiresPinSetup && (
+            <Alert variant="default" className="mb-6 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <AlertTitle className="text-blue-900 dark:text-blue-100 font-semibold">Complete PIN Setup Required</AlertTitle>
+              <AlertDescription className="text-blue-800 dark:text-blue-200">
+                Your wallet is created on the blockchain, but you need to complete PIN setup via Circle Console before you can sync your balance or make transactions.
+                <a 
+                  href="https://console.circle.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="ml-2 underline font-medium hover:text-blue-600 dark:hover:text-blue-300"
+                >
+                  Open Circle Console →
+                </a>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <AIInsightAlert
             message="Based on your spending pattern, you could save money by using USDC for international payments instead of traditional cards."
             type="tip"
@@ -233,6 +265,7 @@ export default function WalletPage() {
             isPositive={true}
             onRefresh={primaryWallet ? () => syncBalanceMutation.mutate(primaryWallet.id) : undefined}
             isRefreshing={syncBalanceMutation.isPending}
+            requiresPinSetup={primaryWallet?.requiresPinSetup || false}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

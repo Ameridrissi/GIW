@@ -163,12 +163,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
+      // If wallet requires PIN setup, return success with helpful message
+      if (!existingWallet.circleWalletId || existingWallet.requiresPinSetup) {
+        return res.json({ 
+          message: "Please complete PIN setup via Circle Console before syncing balance",
+          balance: "0.00",
+          requiresPinSetup: true
+        });
+      }
+
       // Get a fresh Circle user token (tokens expire after 60 minutes)
       const circleUserToken = await circleService.createUser(userId);
-      
-      if (!existingWallet.circleWalletId) {
-        return res.status(400).json({ message: "Wallet not fully set up" });
-      }
 
       // Fetch balance from Circle
       const balances = await circleService.getWalletBalance(circleUserToken, existingWallet.circleWalletId);

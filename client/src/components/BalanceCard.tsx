@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BalanceCardProps {
   balance: string;
@@ -10,9 +11,10 @@ interface BalanceCardProps {
   isPositive: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  requiresPinSetup?: boolean;
 }
 
-export function BalanceCard({ balance, usdValue, percentChange, isPositive, onRefresh, isRefreshing }: BalanceCardProps) {
+export function BalanceCard({ balance, usdValue, percentChange, isPositive, onRefresh, isRefreshing, requiresPinSetup }: BalanceCardProps) {
   return (
     <Card className="p-8">
       <div className="space-y-6">
@@ -45,15 +47,24 @@ export function BalanceCard({ balance, usdValue, percentChange, isPositive, onRe
             <ArrowDownLeft className="h-5 w-5 mr-2" />
             Receive
           </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={onRefresh}
-            disabled={!onRefresh || isRefreshing}
-            data-testid="button-refresh"
-          >
-            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={onRefresh}
+                disabled={!onRefresh || isRefreshing || requiresPinSetup}
+                data-testid="button-refresh"
+              >
+                <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </TooltipTrigger>
+            {requiresPinSetup && (
+              <TooltipContent>
+                <p>Complete PIN setup via Circle Console before syncing</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
       </div>
     </Card>
