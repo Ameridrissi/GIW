@@ -43,11 +43,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // Get a fresh Circle user token
+      // Get a fresh Circle user token and store Circle data
       const circleUserToken = await circleService.createUser(userId);
+      await storage.updateUserCircleData(userId, circleUserToken, userId);
       
-      // Fetch all Circle wallets
-      const circleWallets = await circleService.getUserWallets(circleUserToken);
+      // Fetch all Circle wallets using circleUserId (same as our userId)
+      const circleWallets = await circleService.getUserWallets(userId);
       console.log('[Import Wallets] Found Circle wallets:', { count: circleWallets.length });
       
       const importedWallets = [];
@@ -122,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[Wallet Creation] Challenge data received:', { hasChallenge: !!challengeData.challengeId });
       
       // Fetch Circle wallets to get the actual wallet ID and address
-      const circleWallets = await circleService.getUserWallets(circleUserToken);
+      const circleWallets = await circleService.getUserWallets(userId);
       console.log('[Wallet Creation] Circle wallets fetched:', { count: circleWallets.length, wallets: circleWallets });
       
       const latestWallet = circleWallets.sort((a: any, b: any) => {
@@ -179,9 +180,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get a fresh Circle user token (tokens expire after 60 minutes)
       const circleUserToken = await circleService.createUser(userId);
+      await storage.updateUserCircleData(userId, circleUserToken, userId);
 
       // Fetch Circle wallets to get real wallet data
-      const circleWallets = await circleService.getUserWallets(circleUserToken);
+      const circleWallets = await circleService.getUserWallets(userId);
       if (circleWallets.length === 0) {
         return res.status(400).json({ message: "No Circle wallets found" });
       }
@@ -235,9 +237,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Get a fresh Circle user token
           const circleUserToken = await circleService.createUser(userId);
+          await storage.updateUserCircleData(userId, circleUserToken, userId);
           
           // Fetch Circle wallets to find this wallet
-          const circleWallets = await circleService.getUserWallets(circleUserToken);
+          const circleWallets = await circleService.getUserWallets(userId);
           console.log('[Balance Sync] Fetched Circle wallets:', { count: circleWallets.length });
           
           // Find matching wallet by address (case-insensitive)

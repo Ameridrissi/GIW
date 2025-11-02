@@ -121,18 +121,21 @@ export class CircleService {
 
   /**
    * Get all wallets for a user
-   * @param userToken - User's token
+   * @param userId - Circle user ID
    * @returns Array of user's wallets
    */
-  async getUserWallets(userToken: string): Promise<CircleWallet[]> {
+  async getUserWallets(userId: string): Promise<CircleWallet[]> {
     try {
+      console.log('[Circle] Fetching wallets for userId:', userId);
       const response: any = await (circleClient as any).listWallets({
-        userToken: userToken,
+        userId: userId,
       });
       
-      return response.data?.wallets || [];
+      const wallets = response.data?.wallets || [];
+      console.log('[Circle] Found wallets:', wallets.length);
+      return wallets;
     } catch (error) {
-      console.error('Error fetching user wallets:', error);
+      console.error('[Circle] Error fetching user wallets:', error);
       throw new Error('Failed to fetch user wallets');
     }
   }
