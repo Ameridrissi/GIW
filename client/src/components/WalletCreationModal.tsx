@@ -9,11 +9,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet, Copy, CheckCircle2 } from "lucide-react";
+import { Wallet, Copy, CheckCircle2, AlertCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { executeCircleChallenge, setCircleLayout } from "@/lib/circleSDK";
 import type { Wallet as WalletType } from "@shared/schema";
 
 interface WalletCreationModalProps {
@@ -33,51 +32,16 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
       return response.json();
     },
     onSuccess: async (data: any) => {
-      let finalWallet = data.wallet;
-
-      // Check if PIN setup is required (Circle integration)
-      if (data.requiresPinSetup && data.challengeId) {
-        try {
-          // Configure Circle SDK layout
-          setCircleLayout({
-            title: 'Secure Your Wallet',
-            subtitle: 'Create a PIN to protect your wallet',
-            showCloseButton: false,
-          });
-
-          // Execute Circle challenge for PIN setup
-          await executeCircleChallenge(
-            data.challengeId,
-            data.userToken,
-            data.encryptionKey
-          );
-
-          // PIN setup successful - now complete the setup
-          const completeResponse = await apiRequest("PATCH", `/api/wallets/${data.wallet.id}/complete-setup`, {});
-          const completedWallet = await completeResponse.json();
-          
-          // Sync balance from Circle
-          const syncResponse = await apiRequest("POST", `/api/wallets/${data.wallet.id}/sync-balance`, {});
-          const syncedWallet = await syncResponse.json();
-          
-          finalWallet = syncedWallet;
-
-          toast({
-            title: "Success",
-            description: "Wallet created and secured with PIN",
-          });
-        } catch (error) {
-          console.error('Circle PIN setup error:', error);
-          toast({
-            title: "Warning",
-            description: "Wallet created but PIN setup incomplete. You can set it up later.",
-            variant: "destructive",
-          });
-        }
-      }
+      // Wallet created successfully on blockchain
+      // PIN setup will be completed separately
+      
+      toast({
+        title: "Wallet Created",
+        description: "Your blockchain wallet has been created successfully!",
+      });
 
       // Show success screen
-      setCreatedWallet(finalWallet);
+      setCreatedWallet(data.wallet);
       setStep("success");
       queryClient.invalidateQueries({ queryKey: ["/api/wallets"] });
     },
@@ -173,7 +137,7 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
               </div>
               <DialogTitle className="text-center">Wallet Created Successfully!</DialogTitle>
               <DialogDescription className="text-center">
-                Your new USDC wallet is ready to use
+                Your blockchain wallet is ready on {createdWallet?.blockchain || 'MATIC-AMOY'} testnet
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -181,24 +145,41 @@ export function WalletCreationModal({ open, onClose }: WalletCreationModalProps)
                 <Label>Wallet Address</Label>
                 <div className="flex gap-2 mt-2">
                   <Input
-                    value={createdWallet?.address || ""}
+                    value={createdWallet?.address || "Pending blockchain confirmation..."}
                     readOnly
                     className="font-mono text-sm"
                     data-testid="text-wallet-address"
                   />
-                  <Button variant="outline" size="icon" onClick={copyAddress} data-testid="button-copy-address">
+                  <Button variant="outline" size="icon" onClick={copyAddress} data-testid="button-copy-address" disabled={!createdWallet?.address}>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
+              
+              {createdWallet?.requiresPinSetup && (
+                <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  <div className="flex gap-2 items-start">
+                    <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                        PIN Setup Required
+                      </p>
+                      <p className="text-xs text-orange-600/80 dark:text-orange-400/80">
+                        To secure your wallet and enable transactions, you'll need to set up a 6-digit PIN. Visit your dashboard to complete this setup.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm text-muted-foreground">
-                  Save this address to receive USDC from anyone, anywhere in the world.
+                  Your wallet is a real blockchain wallet powered by Circle. Save the address above to receive USDC.
                 </p>
               </div>
             </div>
             <Button onClick={handleClose} className="w-full" data-testid="button-done">
-              Done
+              Go to Dashboard
             </Button>
           </>
         )}
