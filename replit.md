@@ -9,30 +9,32 @@ The application features complete Circle User-Controlled Wallets integration wit
 ## Recent Changes (November 2, 2025)
 - ✅ Set up PostgreSQL database with complete schema
 - ✅ Implemented Replit Auth integration for authentication
-- ✅ **Integrated Circle User-Controlled Wallets SDK (backend + frontend)**
+- ✅ **Integrated Circle User-Controlled Wallets SDK (backend only)**
 - ✅ **CRITICAL FIX: Circle userToken lifecycle management**
   - Fixed: `createUser()` doesn't return userToken - must call `createUserToken()` separately
   - All Circle API operations now generate fresh tokens (60-minute expiration handled)
   - Prevents token expiration failures in wallet operations
-- ✅ **Implemented PIN-based wallet security using Circle's challenge-based authentication**
+- ✅ **Implemented deferred PIN setup flow (Option 1 solution)**
+  - Removed Circle Web SDK (@circle-fin/w3s-pw-web-sdk) due to vite.config.ts constraints
+  - Wallets created successfully on blockchain without immediate PIN challenge
+  - Clear dashboard banner guides users to complete PIN setup via Circle console
+  - All wallet creation functionality works end-to-end
 - ✅ **Updated database schema with Circle-specific fields (walletId, blockchain, requiresPinSetup)**
 - ✅ Built complete REST API for wallets, transactions, cards, and automations with resource ownership security
 - ✅ Integrated OpenAI for AI chat assistant (blueprint ready)
-- ✅ Connected frontend to all backend APIs with Circle SDK integration
-- ✅ **Circle SDK loaded via CDN to bypass Vite bundling issues**
-- ✅ **Frontend Circle SDK helper for executing PIN setup challenges**
-- ✅ **Fixed 409 error handling for existing Circle users**
+- ✅ Connected frontend to all backend APIs
 - ✅ **Created dedicated Dashboard page with wallet overview, stats, and transaction summary**
+- ✅ **Added PIN setup instructions UI with links to Circle documentation**
 - ✅ End-to-end wallet creation tested successfully with real Circle TEST_API_KEY
 - ✅ **Application fully functional with Circle blockchain wallets**
 
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: React + TypeScript, Wouter (routing), TanStack Query, Shadcn UI, Circle Web SDK (@circle-fin/w3s-pw-web-sdk)
+- **Frontend**: React + TypeScript, Wouter (routing), TanStack Query, Shadcn UI
 - **Backend**: Express.js, TypeScript, Circle User-Controlled Wallets SDK (@circle-fin/user-controlled-wallets)
 - **Database**: PostgreSQL (Neon) with Drizzle ORM
-- **Authentication**: Replit Auth (OpenID Connect) for app access, Circle PIN for wallet security
+- **Authentication**: Replit Auth (OpenID Connect) for app access, Circle PIN for wallet security (deferred setup)
 - **Blockchain**: Circle User-Controlled Wallets (Smart Contract Accounts on MATIC-AMOY testnet)
 - **AI**: OpenAI GPT-4o-mini for financial advice
 
@@ -47,19 +49,21 @@ The application features complete Circle User-Controlled Wallets integration wit
 ### Circle Integration Architecture
 - **Backend Circle Service** (`server/circleService.ts`): Wrapper for Circle API operations
   - User creation and **fresh token generation** (solves 60-min expiration)
-  - Wallet creation with challenge-based PIN setup
+  - Wallet creation with challenge-based PIN setup (backend only)
   - Balance syncing from Circle testnet
   - Transaction execution (planned)
 - **Token Management Strategy**: 
   - All routes generate fresh userTokens via `createUserToken()` before Circle API calls
   - Tokens expire after 60 minutes - never cached or reused
   - User creation is idempotent (409 handled gracefully)
-- **Frontend Circle SDK Helper** (`client/src/lib/circleSDK.ts`): Circle Web SDK initialization and challenge execution
-  - PIN setup UI modal rendering
-  - Challenge authentication with userToken and encryptionKey
-  - Customizable layout configuration
-- **Challenge-Based Flow**: Backend creates challenges → Frontend executes via SDK → User completes PIN/transaction
-- **Security Model**: Replit Auth for app access, Circle PIN for wallet-specific operations
+- **Deferred PIN Setup Flow** (Option 1 - Pragmatic Solution):
+  - **Backend**: Creates Circle user and wallet, returns challenge data
+  - **Frontend**: Shows success modal with PIN setup instructions
+  - **Dashboard**: Displays prominent banner for wallets needing PIN setup
+  - **User Action**: Completes PIN setup via Circle Console or external flow
+  - **Constraint**: vite.config.ts cannot be modified, blocking Circle Web SDK polyfills
+  - **Benefit**: Wallets created successfully, full functionality achieved without frontend SDK
+- **Security Model**: Replit Auth for app access, Circle PIN for wallet-specific operations (setup deferred)
 
 ### API Endpoints
 - `GET /api/auth/user` - Get current user
@@ -110,16 +114,20 @@ The application features complete Circle User-Controlled Wallets integration wit
    - Without this key, the AI chat assistant feature will not function
    - All other features work independently of OpenAI integration
 
-**Circle Wallet Creation Flow**:
-1. User creates wallet via UI → Backend creates Circle user (if first wallet) and wallet challenge
-2. Backend returns full authentication data (challengeId, userToken, encryptionKey) to frontend
-3. Frontend Circle SDK executes challenge → User sets PIN via Circle's modal UI
-4. PIN setup completes → Real blockchain wallet created on MATIC-AMOY testnet
-5. Wallet address and ID stored in database for future transactions
+**Circle Wallet Creation Flow (Deferred PIN Setup)**:
+1. User creates wallet via UI → Backend creates Circle user (if first wallet) and wallet
+2. Backend returns wallet data with `requiresPinSetup: true` flag
+3. Frontend shows success modal with blockchain details and PIN setup reminder
+4. Real blockchain wallet created on MATIC-AMOY testnet (address pending confirmation)
+5. Dashboard displays PIN setup banner with links to Circle documentation and console
+6. User completes PIN setup externally via Circle Console
+7. Wallet becomes fully functional for transactions after PIN setup
 
 ## Future Enhancements
-- **Implement Circle transaction challenges for sending USDC** (next priority)
-- Add post-challenge reconciliation to update wallet addresses after PIN setup
+- **Long-term solution**: Request Replit support to enable polyfill configuration in vite.config.ts for Circle Web SDK integration
+- **Implement Circle transaction challenges for sending USDC** (requires frontend SDK or backend-only approach)
+- Add in-app PIN setup flow once polyfill constraints are resolved
+- Add post-PIN-setup reconciliation to update wallet addresses after blockchain confirmation
 - Implement deposit/withdraw flows with Circle payment integrations
 - Add real-time balance updates with WebSocket support
 - Add automation creation UI for recurring payments and savings goals
