@@ -31,23 +31,78 @@ export class CircleService {
         userId: userId,
       });
       
-      return response.data?.userToken || '';
+      console.log('[Circle] createUser response structure:', {
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : [],
+        userToken: response.data?.userToken,
+        user: response.data?.user,
+        fullData: JSON.stringify(response.data).substring(0, 200)
+      });
+      
+      // Try different possible response structures
+      const userToken = response.data?.userToken 
+        || response.data?.user?.token 
+        || response.userToken 
+        || response.data?.data?.userToken
+        || '';
+      
+      console.log('[Circle] Extracted userToken length:', userToken.length);
+      
+      if (!userToken) {
+        console.error('[Circle] No userToken found in response!');
+        throw new Error('Circle API returned no userToken');
+      }
+      
+      return userToken;
     } catch (error: any) {
+      const status = error.response?.status || error.status || error.code;
+      console.log(`[Circle] createUser error - status: ${status}, userId: ${userId}`);
+      
       // If user already exists (409), get a new token for them
-      if (error.response?.status === 409) {
-        console.log(`Circle user already exists for userId: ${userId}, fetching token...`);
+      if (status === 409 || status === '409') {
+        console.log(`[Circle] User already exists for userId: ${userId}, fetching new token...`);
         try {
           const tokenResponse: any = await circleClient.createUserToken({
             userId: userId,
           });
-          return tokenResponse.data?.userToken || '';
-        } catch (tokenError) {
-          console.error('Error creating user token:', tokenError);
+          
+          console.log('[Circle] createUserToken response structure:', {
+            hasData: !!tokenResponse.data,
+            dataKeys: tokenResponse.data ? Object.keys(tokenResponse.data) : [],
+            userToken: tokenResponse.data?.userToken,
+            fullData: JSON.stringify(tokenResponse.data).substring(0, 200)
+          });
+          
+          // Try different possible response structures
+          const userToken = tokenResponse.data?.userToken 
+            || tokenResponse.data?.user?.token 
+            || tokenResponse.userToken 
+            || tokenResponse.data?.data?.userToken
+            || '';
+          
+          console.log('[Circle] Extracted userToken length:', userToken.length);
+          
+          if (!userToken) {
+            console.error('[Circle] No userToken found in createUserToken response!');
+            throw new Error('Circle API returned no userToken');
+          }
+          
+          return userToken;
+        } catch (tokenError: any) {
+          console.error('[Circle] Error creating user token:', {
+            message: tokenError.message,
+            status: tokenError.response?.status || tokenError.status,
+            data: tokenError.response?.data
+          });
           throw new Error('Failed to get user token');
         }
       }
       
-      console.error('Error creating Circle user:', error);
+      console.error('[Circle] Error creating Circle user:', {
+        message: error.message,
+        status,
+        data: error.response?.data
+      });
       throw new Error('Failed to create Circle user');
     }
   }
@@ -63,19 +118,29 @@ export class CircleService {
     blockchains: any[] = ['MATIC-AMOY']
   ): Promise<{ challengeId: string; userToken: string; encryptionKey: string }> {
     try {
+      console.log(`[Circle] Creating PIN with wallets for blockchains: ${blockchains.join(', ')}`);
+      console.log(`[Circle] UserToken length: ${userToken?.length || 0}`);
+      
       const response: any = await circleClient.createUserPinWithWallets({
         userToken: userToken,
         accountType: 'SCA' as any, // Smart Contract Account
         blockchains: blockchains as any,
       });
       
+      console.log('[Circle] PIN challenge created successfully');
       return {
         challengeId: response.data?.challengeId || '',
         userToken: userToken,
         encryptionKey: response.data?.encryptionKey || '',
       };
-    } catch (error) {
-      console.error('Error creating user PIN with wallets:', error);
+    } catch (error: any) {
+      console.error('[Circle] Error creating user PIN with wallets:', {
+        message: error.message,
+        status: error.response?.status || error.status,
+        data: error.response?.data,
+        userTokenProvided: !!userToken,
+        userTokenLength: userToken?.length || 0
+      });
       throw new Error('Failed to create user PIN and wallet');
     }
   }
