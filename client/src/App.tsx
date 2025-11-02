@@ -54,20 +54,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthWrapper>
-          <SidebarProvider style={style as React.CSSProperties}>
-            <div className="flex h-screen w-full">
-              <Router />
-            </div>
-          </SidebarProvider>
-        </AuthWrapper>
+        <SidebarProvider style={style as React.CSSProperties}>
+          <AuthWrapper />
+        </SidebarProvider>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
   );
 }
 
-function AuthWrapper({ children }: { children: React.ReactNode }) {
+function AuthWrapper() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -86,7 +82,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <div className="flex h-screen w-full">
       <AppSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <header className="border-b bg-background">
@@ -107,10 +103,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="flex-1 overflow-auto p-8">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="max-w-7xl mx-auto">
+            <Router />
+          </div>
         </main>
       </div>
-    </>
+    </div>
   );
 }
 

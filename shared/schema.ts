@@ -130,9 +130,9 @@ export const insertWalletSchema = createInsertSchema(wallets).omit({
   id: true,
   createdAt: true,
   balance: true,
+  address: true,
 }).extend({
   name: z.string().min(1).max(100),
-  address: z.string().min(10),
   isLinked: z.boolean().default(false),
 });
 

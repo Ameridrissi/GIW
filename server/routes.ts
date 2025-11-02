@@ -42,7 +42,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const validated = insertWalletSchema.parse({ ...req.body, userId });
-      const wallet = await storage.createWallet(validated);
+      
+      // Generate a unique wallet address (simulating blockchain address)
+      const address = `0x${Array.from({ length: 40 }, () => 
+        Math.floor(Math.random() * 16).toString(16)
+      ).join('')}`;
+      
+      const wallet = await storage.createWallet({ ...validated, address });
       res.json(wallet);
     } catch (error: any) {
       console.error("Error creating wallet:", error);
