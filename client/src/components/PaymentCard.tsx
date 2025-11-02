@@ -1,27 +1,75 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CreditCard, MoreVertical } from "lucide-react";
-import { SiVisa, SiMastercard } from "react-icons/si";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Star, Trash2 } from "lucide-react";
+import { SiVisa, SiMastercard, SiAmericanexpress } from "react-icons/si";
 
 interface PaymentCardProps {
-  type: "visa" | "mastercard";
+  id: string;
+  type: "visa" | "mastercard" | "amex";
   last4: string;
   expiry: string;
   isDefault?: boolean;
   cardholderName: string;
+  onSetDefault?: () => void;
+  onDelete?: () => void;
 }
 
-export function PaymentCard({ type, last4, expiry, isDefault, cardholderName }: PaymentCardProps) {
-  const CardIcon = type === "visa" ? SiVisa : SiMastercard;
+export function PaymentCard({ 
+  id,
+  type, 
+  last4, 
+  expiry, 
+  isDefault, 
+  cardholderName,
+  onSetDefault,
+  onDelete 
+}: PaymentCardProps) {
+  const CardIcon = 
+    type === "visa" ? SiVisa : 
+    type === "mastercard" ? SiMastercard : 
+    SiAmericanexpress;
   
   return (
-    <Card className="p-6 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+    <Card className="p-6 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground" data-testid={`card-payment-${id}`}>
       <div className="flex justify-between items-start mb-8">
         <CardIcon className="h-8 w-8" />
-        <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10" data-testid="button-card-menu">
-          <MoreVertical className="h-5 w-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-primary-foreground hover:bg-primary-foreground/10" 
+              data-testid={`button-card-menu-${id}`}
+            >
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {!isDefault && onSetDefault && (
+              <DropdownMenuItem onClick={onSetDefault} data-testid={`button-set-default-${id}`}>
+                <Star className="h-4 w-4 mr-2" />
+                Set as Default
+              </DropdownMenuItem>
+            )}
+            {onDelete && (
+              <DropdownMenuItem 
+                onClick={onDelete} 
+                className="text-destructive"
+                data-testid={`button-delete-card-${id}`}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove Card
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
       <div className="space-y-4">

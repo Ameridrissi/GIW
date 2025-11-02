@@ -29,11 +29,7 @@ export function WithdrawModal({ open, onClose, wallet }: WithdrawModalProps) {
 
   const transferMutation = useMutation({
     mutationFn: async (data: { walletId: string; recipientAddress: string; amount: string }) => {
-      return apiRequest("/api/transfers", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest("POST", "/api/transfers", data);
     },
     onSuccess: (data: any) => {
       toast({
