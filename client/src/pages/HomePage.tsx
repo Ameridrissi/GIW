@@ -62,44 +62,48 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <div 
-        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        className="relative h-screen flex flex-col overflow-hidden"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url(${heroImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
-          <h1 className="text-5xl md:text-7xl font-bold font-display mb-6 text-white">
-            <span className="gradient-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Global International Wallet</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8">
-            Pay Anywhere, Everywhere. Your universal USDC wallet for seamless global payments with AI-powered insights
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="text-lg px-8"
-              data-testid="button-get-started"
-              onClick={() => window.location.href = '/api/login'}
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg px-8 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20"
-              data-testid="button-learn-more"
-              onClick={() => window.location.href = '/api/login'}
-            >
-              Sign In
-            </Button>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
+            <h1 className="text-5xl md:text-7xl font-bold font-display mb-6 text-white">
+              <span className="gradient-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Global International Wallet</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 mb-8">
+              Pay Anywhere, Everywhere. Your universal USDC wallet for seamless global payments with AI-powered insights
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className="text-lg px-8"
+                data-testid="button-get-started"
+                onClick={() => window.location.href = '/api/login'}
+              >
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg px-8 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20"
+                data-testid="button-learn-more"
+                onClick={() => window.location.href = '/api/login'}
+              >
+                Sign In
+              </Button>
+            </div>
           </div>
         </div>
+        
+        <div className="relative z-20">
+          <AnimatedBanner />
+        </div>
       </div>
-
-      <AnimatedBanner />
 
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
